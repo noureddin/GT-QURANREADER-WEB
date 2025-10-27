@@ -103,4 +103,146 @@ class PWAHelper {
             this.deferredPrompt.prompt();
             const { outcome } = await this.deferredPrompt.userChoice;
             
-           
+            if (outcome === 'accepted') {
+                console.log('✅ User accepted the install prompt');
+                this.hideInstallPrompt();
+                if (this.pwaInstallBtn) {
+                    this.pwaInstallBtn.style.display = 'none';
+                }
+            } else {
+                console.log('❌ User dismissed the install prompt');
+            }
+            
+            this.deferredPrompt = null;
+        }
+    }
+
+    // التحقق إذا كان التطبيق مثبتاً
+    isAppInstalled() {
+        return window.matchMedia('(display-mode: standalone)').matches ||
+               window.navigator.standalone ||
+               document.referrer.includes('android-app://');
+    }
+
+    // إعداد حدث التثبيت
+    setupAppInstalled() {
+        window.addEventListener('appinstalled', () => {
+            console.log('🎉 PWA was installed successfully');
+            this.deferredPrompt = null;
+            this.hideInstallPrompt();
+            if (this.pwaInstallBtn) {
+                this.pwaInstallBtn.style.display = 'none';
+            }
+            
+            // إظهار رسالة نجاح التثبيت
+            this.showInstallSuccessMessage();
+        });
+    }
+
+    // التحقق من وضع standalone
+    checkStandaloneMode() {
+        if (this.isAppInstalled()) {
+            console.log('📱 App is running in standalone mode');
+            document.body.classList.add('standalone-mode');
+            
+            // إخفاء زر التثبيت إذا كان التطبيق مثبتاً
+            if (this.pwaInstallBtn) {
+                this.pwaInstallBtn.style.display = 'none';
+            }
+        }
+    }
+
+    // إظهار رسالة نجاح التثبيت
+    showInstallSuccessMessage() {
+        const message = document.createElement('div');
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-dark);
+            z-index: 1003;
+            font-weight: 500;
+        `;
+        message.innerHTML = '<i class="fas fa-check"></i> تم تثبيت التطبيق بنجاح!';
+        
+        document.body.appendChild(message);
+        
+        setTimeout(() => {
+            message.remove();
+        }, 3000);
+    }
+
+    // إظهار إشعار التحديث
+    showUpdateNotification() {
+        const updateDiv = document.createElement('div');
+        updateDiv.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--warning-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-dark);
+            z-index: 1002;
+            text-align: center;
+            max-width: 300px;
+        `;
+        updateDiv.innerHTML = `
+            <p><i class="fas fa-sync-alt"></i> يتوفر تحديث جديد</p>
+            <button onclick="location.reload()" style="
+                padding: 8px 16px;
+                background: white;
+                color: var(--warning-color);
+                border: none;
+                border-radius: var(--border-radius);
+                cursor: pointer;
+                margin-top: 10px;
+                font-weight: bold;
+            ">تحديث الآن</button>
+        `;
+        
+        document.body.appendChild(updateDiv);
+        
+        // إزالة الإشعار بعد 10 ثواني
+        setTimeout(() => {
+            if (updateDiv.parentNode) {
+                updateDiv.remove();
+            }
+        }, 10000);
+    }
+
+    // التحقق من دعم PWA
+    static supportsPWA() {
+        return 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
+    }
+
+    // الحصول على حجم التخزين المستخدم
+    async getStorageUsage() {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            const estimation = await navigator.storage.estimate();
+            return {
+                used: estimation.usage,
+                quota: estimation.quota,
+                percentage: (estimation.usage / estimation.quota * 100).toFixed(2)
+            };
+        }
+        return null;
+    }
+}
+
+// تهيئة PWA عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    if (PWAHelper.supportsPWA()) {
+        new PWAHelper();
+        console.log('🚀 PWA features enabled');
+    } else {
+        console.log('❌ PWA not supported in this browser');
+    }
+});
