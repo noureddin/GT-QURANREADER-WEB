@@ -250,17 +250,15 @@ class QuranDataManager {
     constructor() {
         this.dataSources = {
             pages: [
-                'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@main/pagesQuran.json',
-                'https://raw.githubusercontent.com/rn0x/Quran-Data/main/pagesQuran.json',
-                './data/pagesQuran.json'
+                'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/pagesQuran.json',
+                'https://raw.githubusercontent.com/rn0x/Quran-Data/version-2.0/pagesQuran.json'
             ],
             surahs: [
-                'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@main/mainDataQuran.json',
-                'https://raw.githubusercontent.com/rn0x/Quran-Data/main/mainDataQuran.json',
-                './data/mainDataQuran.json'
+                'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/mainDataQuran.json',
+                'https://raw.githubusercontent.com/rn0x/Quran-Data/version-2.0/mainDataQuran.json'
             ],
-            images: 'https://everyayah.com/data/images_png/{page}.png',
-            audio: 'https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/{surah}.mp3'
+            images: 'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/data/quran_image/{page}.png',
+            audio: 'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/data/json/audio/audio_surah_{surah}.json'
         };
         this.cache = new Map();
     }
@@ -289,10 +287,12 @@ class QuranDataManager {
                 // إذا فشلت جميع الروابط، استخدم البيانات المدمجة
                 return this.getEmbeddedData(type);
             } else {
-                // رابط واحد
+                // رابط واحد - استبدل المعلمات
                 let url = this.dataSources[type];
-                url = url.replace('{page}', params.page || '').replace('{surah}', params.surah || '');
+                url = url.replace('{page}', params.page || '')
+                         .replace('{surah}', params.surah || '');
                 
+                console.log(`📥 جاري تحميل: ${url}`);
                 const data = await this.fetchUrl(url, params);
                 this.cache.set(cacheKey, data);
                 return data;
@@ -300,6 +300,41 @@ class QuranDataManager {
         } catch (error) {
             console.error(`❌ جميع محاولات تحميل ${type} فشلت، استخدام البيانات المدمجة`);
             return this.getEmbeddedData(type);
+        }
+    }
+
+    async fetchUrl(url, params = {}) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`فشل التحميل: ${response.status} - ${url}`);
+        }
+        
+        // إذا كان الملف صوتياً، نعيد الرابط مباشرة
+        if (url.includes('audio_surah')) {
+            const audioData = await response.json();
+            if (audioData && audioData.length > 0) {
+                return audioData;
+            } else {
+                throw new Error('لا توجد بيانات صوتية');
+            }
+        }
+        
+        return await response.json();
+    }
+
+    getPageImageUrl(page) {
+        return this.dataSources.images.replace('{page}', page);
+    }
+
+    async getSurahAudio(surahNumber) {
+        try {
+            return await this.loadData('audio', { surah: surahNumber });
+        } catch (error) {
+            console.error('❌ فشل تحميل الصوت، استخدام رابط مباشر');
+            // رابط صوتي مباشر كبديل
+            return [{
+                link: `https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/${surahNumber.toString().padStart(3, '0')}.mp3`
+            }];
         }
     }
 
@@ -312,27 +347,6 @@ class QuranDataManager {
             default:
                 throw new Error(`لا توجد بيانات مدمجة لـ ${type}`);
         }
-    }
-
-    async fetchUrl(url, params = {}) {
-        console.log(`📥 جاري تحميل: ${url}`);
-        
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`فشل التحميل: ${response.status}`);
-        }
-        
-        return await response.json();
-    }
-
-    getPageImageUrl(page) {
-        // استخدام صور من مصدر عام
-        return `https://everyayah.com/data/images_png/${page}.png`;
-    }
-
-    getAudioUrl(surah) {
-        // استخدام صوت من مصدر عام
-        return `https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/${surah.toString().padStart(3, '0')}.mp3`;
     }
 }
 
@@ -422,7 +436,7 @@ class QuranReader {
 
     updateConnectionStatus(online) {
         this.isOnline = online;
-        
+
         if (online) {
             this.connectionStatus.textContent = 'متصل بالإنترنت';
             this.connectionIcon.className = 'fas fa-wifi';
@@ -553,45 +567,34 @@ class QuranReader {
         try {
             console.log('🔄 بدء تحميل بيانات القرآن...');
             
-            // استخدام البيانات المدمجة مباشرة للسرعة
-            this.pagesData = EMBEDDED_PAGES_DATA;
-            this.surahsData = EMBEDDED_SURAHS_DATA;
-
-            this.hideLoadingScreen();
-            this.updatePage();
+            // اختبار تحميل البيانات من المصادر الجديدة
+            console.log('🧪 اختبار تحميل البيانات...');
             
-            console.log('✅ تم تحميل البيانات المدمجة بنجاح');
-
-            // محاولة تحميل بيانات إضافية في الخلفية
-            this.loadAdditionalDataInBackground();
-
-        } catch (error) {
-            console.error('❌ خطأ في تحميل البيانات:', error);
-            this.hideLoadingScreen();
-            this.updatePage();
-        }
-    }
-
-    async loadAdditionalDataInBackground() {
-        try {
-            const [fullPagesData, fullSurahsData] = await Promise.all([
+            const [pagesData, surahsData] = await Promise.all([
                 this.dataManager.loadData('pages'),
                 this.dataManager.loadData('surahs')
             ]);
 
-            if (fullPagesData && fullPagesData.length > 3) {
-                this.pagesData = fullPagesData;
-                console.log('✅ تم تحميل بيانات الصفحات الكاملة');
-            }
+            this.pagesData = pagesData;
+            this.surahsData = surahsData;
 
-            if (fullSurahsData && fullSurahsData.length > 5) {
-                this.surahsData = fullSurahsData;
-                console.log('✅ تم تحميل بيانات السور الكاملة');
-            }
+            this.hideLoadingScreen();
+            this.updatePage();
+            
+            console.log('✅ تم تحميل البيانات بنجاح');
+            console.log('📊 إحصائيات:', {
+                pages: this.pagesData.length,
+                surahs: this.surahsData.length
+            });
 
-            this.updatePageInfo();
         } catch (error) {
-            console.log('ℹ️  استخدام البيانات المدمجة (البيانات الكاملة غير متوفرة)');
+            console.error('❌ خطأ في تحميل البيانات:', error);
+            // استخدام البيانات المدمجة كحل أخير
+            this.pagesData = EMBEDDED_PAGES_DATA;
+            this.surahsData = EMBEDDED_SURAHS_DATA;
+            this.hideLoadingScreen();
+            this.updatePage();
+            this.showMessage('تم تحميل البيانات الأساسية (البيانات الكاملة غير متوفرة)', 'info');
         }
     }
 
@@ -608,11 +611,11 @@ class QuranReader {
             const imageUrl = this.dataManager.getPageImageUrl(this.currentPage);
             this.quranImg.src = imageUrl;
             this.quranImg.alt = `صفحة القرآن ${this.currentPage}`;
-            
+
             this.quranImg.onload = () => {
                 console.log(`✅ تم تحميل صفحة ${this.currentPage}`);
             };
-            
+
             this.quranImg.onerror = () => {
                 console.error(`❌ فشل تحميل صفحة ${this.currentPage}`);
                 this.showImageError();
@@ -650,12 +653,12 @@ class QuranReader {
         const pageInfo = this.pagesData.find(page => page.page === this.currentPage);
         if (pageInfo) {
             let surahText = `السورة: ${pageInfo.start.name.ar}`;
-            
+
             // إذا كانت الصفحة تحتوي على أكثر من سورة
             if (pageInfo.end && pageInfo.end.surah_number !== pageInfo.start.surah_number) {
                 surahText += ` - ${pageInfo.end.name.ar}`;
             }
-            
+
             this.surahInfo.textContent = surahText;
             this.juzInfo.textContent = `الجزء: ${pageInfo.start.juz || this.calculateJuz(this.currentPage)}`;
         } else {
@@ -714,7 +717,7 @@ class QuranReader {
 
     getVersesInPage(surahNumber, pageNumber) {
         if (!this.surahsData) return [];
-        
+
         const surah = this.surahsData.find(s => s.number === surahNumber);
         if (!surah) return [];
 
@@ -752,7 +755,7 @@ class QuranReader {
     toggleTheme() {
         document.body.classList.toggle('dark-mode');
         document.body.classList.toggle('light-mode');
-        
+
         const icon = this.themeBtn.querySelector('i');
         if (document.body.classList.contains('dark-mode')) {
             icon.className = 'fas fa-sun';
@@ -770,7 +773,7 @@ class QuranReader {
             // إذا كانت الصفحة تحتوي على سورة واحدة فقط
             if (this.availableSurahsInPage.length === 1) {
                 await this.playSurahAudio(this.availableSurahsInPage[0].number);
-            } 
+            }
             // إذا كانت الصفحة تحتوي على أكثر من سورة
             else if (this.availableSurahsInPage.length > 1) {
                 this.showSurahSelection();
@@ -786,7 +789,7 @@ class QuranReader {
         if (this.availableSurahsInPage.length === 0) return;
 
         const selectionHTML = this.availableSurahsInPage.map(surah => {
-            const versesInfo = surah.verses_in_page && surah.verses_in_page.length > 0 
+            const versesInfo = surah.verses_in_page && surah.verses_in_page.length > 0
                 ? ` | الآيات: ${surah.verses_in_page[0]} - ${surah.verses_in_page[surah.verses_in_page.length - 1]}`
                 : '';
 
@@ -818,16 +821,28 @@ class QuranReader {
 
     async playSurahAudio(surahNumber) {
         try {
-            const audioUrl = this.dataManager.getAudioUrl(surahNumber);
-            this.currentAudio = audioUrl;
-            this.audioPlayer.src = this.currentAudio;
-            this.showAudioPlayer();
+            const audioData = await this.dataManager.getSurahAudio(surahNumber);
             
-            const surah = this.surahsData.find(s => s.number === surahNumber);
-            this.audioInfo.textContent = `سورة ${surah.name.ar} - الصفحة ${this.currentPage}`;
+            if (audioData && audioData.length > 0) {
+                this.currentAudio = audioData[0].link;
+                this.audioPlayer.src = this.currentAudio;
+                this.showAudioPlayer();
+                
+                const surah = this.surahsData.find(s => s.number === surahNumber);
+                this.audioInfo.textContent = `سورة ${surah.name.ar} - الصفحة ${this.currentPage}`;
 
-            await this.audioPlayer.play();
-            this.currentAudioSurah = surahNumber;
+                // إضافة معالجة الأخطاء للصوت
+                this.audioPlayer.onerror = () => {
+                    console.error('❌ فشل تشغيل الصوت');
+                    this.showMessage('تعذر تشغيل التلاوة', 'error');
+                    this.stopAudio();
+                };
+
+                await this.audioPlayer.play();
+                this.currentAudioSurah = surahNumber;
+            } else {
+                this.showMessage('تعذر العثور على التلاوة لهذه السورة', 'warning');
+            }
         } catch (error) {
             console.error('خطأ في تشغيل الصوت:', error);
             this.showMessage('تعذر تشغيل التلاوة. يرجى المحاولة لاحقاً.', 'error');
@@ -881,20 +896,20 @@ class QuranReader {
 
     async playNextSurah() {
         const currentSurahNumber = this.currentAudioSurah;
-        
+
         // البحث عن السورة التالية
         const nextSurahNumber = currentSurahNumber + 1;
-        
+
         if (nextSurahNumber <= 114) {
             // البحث عن الصفحة الأولى للسورة التالية
             const nextSurah = this.surahsData.find(s => s.number === nextSurahNumber);
             if (nextSurah && nextSurah.verses.length > 0) {
                 const firstVersePage = nextSurah.verses[0].page;
-                
+
                 // الانتقال إلى صفحة السورة التالية
                 this.currentPage = firstVersePage;
                 this.updatePage();
-                
+
                 // تشغيل السورة التالية
                 await this.playSurahAudio(nextSurahNumber);
             }
@@ -969,20 +984,21 @@ class QuranReader {
             this.searchResults.innerHTML = '<div class="search-result-item">لم يتم العثور على نتائج</div>';
         } else {
             this.searchResults.innerHTML = results.map(result => `
-            <div class="search-result-item" data-page="${result.page}">
-            <div class="result-surah">${result.text}</div>
-            <div class="result-verse">الصفحة: ${result.page}</div>
-            </div>
+                <div class="search-result-item" data-type="${result.type}" data-surah="${result.surah}" data-verse="${result.verse || ''}" data-page="${result.page}">
+                    ${result.text}
+                </div>
             `).join('');
-
-            this.searchResults.querySelectorAll('.search-result-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const page = parseInt(item.dataset.page);
-                    this.goToPage(page);
-                    this.searchResults.style.display = 'none';
-                });
-            });
         }
+
+        // إضافة مستمعي الأحداث للنتائج
+        this.searchResults.querySelectorAll('.search-result-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = parseInt(item.dataset.page);
+                this.goToPage(page);
+                this.searchResults.style.display = 'none';
+                this.searchInput.value = '';
+            });
+        });
 
         this.searchResults.style.display = 'block';
     }
@@ -990,98 +1006,163 @@ class QuranReader {
     showSurahList() {
         if (!this.surahsData) return;
 
-        const surahListContent = this.surahsData.map(surah => `
-        <div class="surah-item" data-surah="${surah.number}">
-        <div class="surah-name">${surah.number}. ${surah.name.ar} (${surah.name.en})</div>
-        <div class="surah-details">آيات: ${surah.verses_count} | ${surah.revelation_place.ar}</div>
-        </div>
+        const surahListHTML = this.surahsData.map(surah => `
+            <div class="surah-item" data-surah="${surah.number}" data-page="${surah.verses[0]?.page || 1}">
+                <div class="surah-number">${surah.number}</div>
+                <div class="surah-name">${surah.name.ar}</div>
+                <div class="surah-details">
+                    <span class="surah-verse-count">${surah.verses_count} آية</span>
+                    <span class="surah-revelation">${surah.revelation_place.ar}</span>
+                </div>
+            </div>
         `).join('');
 
-        document.getElementById('surah-list-content').innerHTML = surahListContent;
-        this.surahModal.style.display = 'flex';
+        this.surahModal.querySelector('.modal-body').innerHTML = surahListHTML;
+        this.surahModal.style.display = 'block';
 
-        document.querySelectorAll('#surah-list-content .surah-item').forEach(item => {
+        // إضافة مستمعي الأحداث
+        this.surahModal.querySelectorAll('.surah-item').forEach(item => {
             item.addEventListener('click', () => {
-                const surahNum = parseInt(item.dataset.surah);
-                this.goToSurah(surahNum);
+                const page = parseInt(item.dataset.page);
+                this.goToPage(page);
                 this.surahModal.style.display = 'none';
             });
         });
     }
 
     showJuzList() {
-        const juzListContent = Array.from({length: 30}, (_, i) => {
-            const juzNum = i + 1;
-            const startPage = (juzNum - 1) * 20 + 1;
+        const juzListHTML = Array.from({ length: 30 }, (_, i) => {
+            const juzNumber = i + 1;
+            const startPage = this.calculateJuzStartPage(juzNumber);
             return `
-            <div class="juz-item" data-juz="${juzNum}">
-            <div class="surah-name">الجزء ${juzNum}</div>
-            <div class="surah-details">الصفحات: ${startPage} - ${startPage + 19}</div>
-            </div>
+                <div class="juz-item" data-juz="${juzNumber}" data-page="${startPage}">
+                    <div class="juz-number">الجزء ${juzNumber}</div>
+                    <div class="juz-page">الصفحة ${startPage}</div>
+                </div>
             `;
         }).join('');
 
-        document.getElementById('juz-list-content').innerHTML = juzListContent;
-        this.juzModal.style.display = 'flex';
+        this.juzModal.querySelector('.modal-body').innerHTML = juzListHTML;
+        this.juzModal.style.display = 'block';
 
-        document.querySelectorAll('#juz-list-content .juz-item').forEach(item => {
+        // إضافة مستمعي الأحداث
+        this.juzModal.querySelectorAll('.juz-item').forEach(item => {
             item.addEventListener('click', () => {
-                const juzNum = parseInt(item.dataset.juz);
-                const startPage = (juzNum - 1) * 20 + 1;
-                this.goToPage(startPage);
+                const page = parseInt(item.dataset.page);
+                this.goToPage(page);
                 this.juzModal.style.display = 'none';
             });
         });
     }
 
-    async showSajdaVerses() {
-        try {
-            const sajdaVerses = [];
-            this.surahsData.forEach(surah => {
-                surah.verses.forEach(verse => {
-                    if (verse.sajda) {
-                        sajdaVerses.push({
-                            surah: surah.number,
-                            verse: verse.number,
-                            text: verse.text.ar,
-                            page: verse.page
-                        });
-                    }
-                });
+    showSajdaVerses() {
+        const sajdaVerses = [];
+        this.surahsData.forEach(surah => {
+            surah.verses.forEach(verse => {
+                if (verse.sajda) {
+                    sajdaVerses.push({
+                        surah: surah.number,
+                        surahName: surah.name.ar,
+                        verse: verse.number,
+                        text: verse.text.ar,
+                        page: verse.page
+                    });
+                }
             });
+        });
 
-            const resultsHTML = sajdaVerses.map(verse => `
-            <div class="search-result-item" data-page="${verse.page}">
-            <div class="result-surah">سورة ${this.getSurahName(verse.surah)} - الآية ${verse.verse}</div>
-            <div class="result-verse">${verse.text.substring(0, 70)}...</div>
-            <div class="surah-details">الصفحة: ${verse.page}</div>
-            </div>
-            `).join('');
-
-            this.searchResults.innerHTML = resultsHTML;
-            this.searchResults.style.display = 'block';
-
-            this.searchResults.querySelectorAll('.search-result-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const page = parseInt(item.dataset.page);
-                    this.goToPage(page);
-                    this.searchResults.style.display = 'none';
-                });
-            });
-
-        } catch (error) {
-            console.error('خطأ في عرض آيات السجود:', error);
+        if (sajdaVerses.length === 0) {
+            this.showMessage('لا توجد آيات سجدة في هذه البيانات', 'info');
+            return;
         }
+
+        const sajdaHTML = sajdaVerses.map(verse => `
+            <div class="sajda-item" data-surah="${verse.surah}" data-verse="${verse.verse}" data-page="${verse.page}">
+                <div class="sajda-surah">سورة ${verse.surahName} - الآية ${verse.verse}</div>
+                <div class="sajda-text">${verse.text}</div>
+                <div class="sajda-page">الصفحة ${verse.page}</div>
+            </div>
+        `).join('');
+
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>آيات السجود</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    ${sajdaHTML}
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // إضافة مستمعي الأحداث
+        modal.querySelector('.close').addEventListener('click', () => {
+            modal.remove();
+        });
+
+        modal.querySelectorAll('.sajda-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = parseInt(item.dataset.page);
+                this.goToPage(page);
+                modal.remove();
+            });
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
     }
 
-    goToSurah(surahNumber) {
-        if (!this.surahsData) return;
+    calculateJuz(page) {
+        // حساب تقريبي للجزء بناءً على رقم الصفحة
+        if (page <= 22) return 1;
+        if (page <= 42) return 2;
+        if (page <= 62) return 3;
+        if (page <= 82) return 4;
+        if (page <= 102) return 5;
+        if (page <= 122) return 6;
+        if (page <= 142) return 7;
+        if (page <= 162) return 8;
+        if (page <= 182) return 9;
+        if (page <= 202) return 10;
+        if (page <= 222) return 11;
+        if (page <= 242) return 12;
+        if (page <= 262) return 13;
+        if (page <= 282) return 14;
+        if (page <= 302) return 15;
+        if (page <= 322) return 16;
+        if (page <= 342) return 17;
+        if (page <= 362) return 18;
+        if (page <= 382) return 19;
+        if (page <= 402) return 20;
+        if (page <= 422) return 21;
+        if (page <= 442) return 22;
+        if (page <= 462) return 23;
+        if (page <= 482) return 24;
+        if (page <= 502) return 25;
+        if (page <= 522) return 26;
+        if (page <= 542) return 27;
+        if (page <= 562) return 28;
+        if (page <= 582) return 29;
+        return 30;
+    }
 
-        const surah = this.surahsData.find(s => s.number === surahNumber);
-        if (surah && surah.verses.length > 0) {
-            const firstVersePage = surah.verses[0].page;
-            this.goToPage(firstVersePage);
-        }
+    calculateJuzStartPage(juz) {
+        const juzPages = {
+            1: 1, 2: 22, 3: 42, 4: 62, 5: 82, 6: 102, 7: 122, 8: 142, 9: 162, 10: 182,
+            11: 202, 12: 222, 13: 242, 14: 262, 15: 282, 16: 302, 17: 322, 18: 342,
+            19: 362, 20: 382, 21: 402, 22: 422, 23: 442, 24: 462, 25: 482, 26: 502,
+            27: 522, 28: 542, 29: 562, 30: 582
+        };
+        return juzPages[juz] || 1;
     }
 
     getSurahName(surahNumber) {
@@ -1089,44 +1170,52 @@ class QuranReader {
         return surah ? surah.name.ar : `سورة ${surahNumber}`;
     }
 
-    calculateJuz(page) {
-        const juz = Math.ceil(page / 20);
-        return juz > 30 ? 30 : juz;
-    }
-
     showMessage(message, type = 'info') {
-        const colors = {
-            info: '#2e86ab',
-            success: '#27ae60',
-            warning: '#e67e22',
-            error: '#e74c3c'
-        };
-
         const messageDiv = document.createElement('div');
-        messageDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${colors[type]};
-            color: white;
-            padding: 15px 25px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-dark);
-            z-index: 1003;
-            font-weight: 500;
-        `;
+        messageDiv.className = `message ${type}`;
         messageDiv.textContent = message;
-        
+
         document.body.appendChild(messageDiv);
-        
+
         setTimeout(() => {
-            messageDiv.remove();
+            messageDiv.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+            messageDiv.classList.remove('show');
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 300);
         }, 3000);
     }
 }
 
-// تهيئة التطبيق عند تحميل الصفحة
+// دالة لاختبار جميع المصادر
+function testDataSources() {
+    console.log('🧪 اختبار جميع مصادر البيانات...');
+    
+    const testUrls = [
+        'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/pagesQuran.json',
+        'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/mainDataQuran.json',
+        'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/data/quran_image/1.png',
+        'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/data/json/audio/audio_surah_1.json'
+    ];
+    
+    testUrls.forEach(url => {
+        fetch(url)
+            .then(response => {
+                console.log(`✅ ${url}: ${response.status}`);
+            })
+            .catch(error => {
+                console.error(`❌ ${url}: ${error.message}`);
+            });
+    });
+}
+
+// تشغيل التطبيق
 document.addEventListener('DOMContentLoaded', () => {
+    // testDataSources(); // فك التعليق لاختبار المصادر
     new QuranReader();
 });
