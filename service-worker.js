@@ -1,14 +1,14 @@
-// service-worker.js
-const CACHE_NAME = 'quran-reader-pwa-v3.2';
+// service-worker.js - الإصدار النهائي
+const CACHE_NAME = 'quran-reader-v4.0';
 const STATIC_FILES = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/script.js',
-    '/pwa.js',
-    '/manifest.json',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/GT-QURANREADER-WEB/',
+    '/GT-QURANREADER-WEB/index.html',
+    '/GT-QURANREADER-WEB/styles.css',
+    '/GT-QURANREADER-WEB/script.js',
+    '/GT-QURANREADER-WEB/pwa.js',
+    '/GT-QURANREADER-WEB/manifest.json',
+    '/GT-QURANREADER-WEB/icons/icon-128x128.png',
+    '/GT-QURANREADER-WEB/icons/icon-512x512.png'
 ];
 
 // التثبيت
@@ -18,16 +18,10 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('✅ فتح الذاكرة المؤقتة:', CACHE_NAME);
+                console.log('✅ فتح الذاكرة المؤقتة');
                 return cache.addAll(STATIC_FILES);
             })
-            .then(() => {
-                console.log('✅ جميع الملفات تم تخزينها');
-                return self.skipWaiting();
-            })
-            .catch(error => {
-                console.error('❌ خطأ في التثبيت:', error);
-            })
+            .then(() => self.skipWaiting())
     );
 });
 
@@ -46,69 +40,17 @@ self.addEventListener('activate', (event) => {
                 })
             );
         })
-        .then(() => {
-            console.log('✅ Service Worker مفعل وجاهز');
-            return self.clients.claim();
-        })
+        .then(() => self.clients.claim())
     );
 });
 
 // اعتراض الطلبات
 self.addEventListener('fetch', (event) => {
-    const request = event.request;
-    
-    // استبعاد طلبات API الخارجية
-    if (request.url.includes('api.alquran.cloud') ||
-        request.url.includes('everyayah.com') ||
-        request.url.includes('cdn.islamic.network')) {
-        return; // دع الطلبات تمر مباشرة بدون تخزين
-    }
-    
     // للملفات المحلية فقط
-    event.respondWith(
-        caches.match(request)
-            .then(response => {
-                // إذا وجد في الكاش، أرجعها
-                if (response) {
-                    return response;
-                }
-                
-                // إذا لم توجد، جلب من الشبكة
-                return fetch(request)
-                    .then(networkResponse => {
-                        // لا تخزن ملفات خارجية
-                        if (!request.url.startsWith('http')) {
-                            return networkResponse;
-                        }
-                        
-                        // تخزين الملفات المحلية فقط
-                        const responseClone = networkResponse.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(request, responseClone);
-                            });
-                        
-                        return networkResponse;
-                    })
-                    .catch(() => {
-                        // إذا فشل الاتصال، عرض صفحة بديلة للطلبات الرئيسية
-                        if (request.destination === 'document') {
-                            return caches.match('/index.html');
-                        }
-                        return new Response('لا يوجد اتصال بالإنترنت', {
-                            status: 408,
-                            headers: { 'Content-Type': 'text/plain' }
-                        });
-                    });
-            })
-    );
-});
-
-// استقبال الرسائل
-self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
-        self.skipWaiting();
+    if (event.request.url.includes('/GT-QURANREADER-WEB/')) {
+        event.respondWith(
+            caches.match(event.request)
+                .then(response => response || fetch(event.request))
+        );
     }
 });
-
-console.log('✅ Service Worker تم تحميله بنجاح');
