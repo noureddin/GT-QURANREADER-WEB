@@ -3,10 +3,11 @@ const CACHE_NAME = 'quran-reader-v4.0';
 const STATIC_FILES = [
     '/GT-QURANREADER-WEB/',
     '/GT-QURANREADER-WEB/index.html',
-    '/GT-QURANREADER-WEB/styles.css',
+    '/GT-QURANREADER-WEB/style.css',  // ← غير من styles.css إلى style.css
     '/GT-QURANREADER-WEB/script.js',
     '/GT-QURANREADER-WEB/pwa.js',
     '/GT-QURANREADER-WEB/manifest.json',
+    '/GT-QURANREADER-WEB/service-worker.js',
     '/GT-QURANREADER-WEB/icons/icon-128x128.png',
     '/GT-QURANREADER-WEB/icons/icon-512x512.png'
 ];
