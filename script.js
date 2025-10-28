@@ -248,18 +248,7 @@ const EMBEDDED_SURAHS_DATA = [
 
 class QuranDataManager {
     constructor() {
-        this.dataSources = {
-            pages: [
-                'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/pagesQuran.json',
-                'https://raw.githubusercontent.com/rn0x/Quran-Data/version-2.0/pagesQuran.json'
-            ],
-            surahs: [
-                'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/mainDataQuran.json',
-                'https://raw.githubusercontent.com/rn0x/Quran-Data/version-2.0/mainDataQuran.json'
-            ],
-            images: 'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/data/quran_image/{page}.png',
-            audio: 'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/data/json/audio/audio_surah_{surah}.json'
-        };
+        this.baseURL = 'https://api.alquran.cloud/v1';
         this.cache = new Map();
     }
 
@@ -271,72 +260,219 @@ class QuranDataManager {
         }
 
         try {
-            // إذا كان type له روابط متعددة، جربهم جميعاً
-            if (Array.isArray(this.dataSources[type])) {
-                for (let url of this.dataSources[type]) {
-                    try {
-                        const data = await this.fetchUrl(url, params);
-                        this.cache.set(cacheKey, data);
-                        console.log(`✅ تم تحميل ${type} من: ${url}`);
-                        return data;
-                    } catch (error) {
-                        console.warn(`❌ فشل الرابط: ${url}`);
-                        continue;
-                    }
-                }
-                // إذا فشلت جميع الروابط، استخدم البيانات المدمجة
-                return this.getEmbeddedData(type);
-            } else {
-                // رابط واحد - استبدل المعلمات
-                let url = this.dataSources[type];
-                url = url.replace('{page}', params.page || '')
-                         .replace('{surah}', params.surah || '');
-                
-                console.log(`📥 جاري تحميل: ${url}`);
-                const data = await this.fetchUrl(url, params);
-                this.cache.set(cacheKey, data);
-                return data;
+            switch(type) {
+                case 'pages':
+                    return await this.loadPagesData();
+                case 'surahs':
+                    return await this.loadSurahsData();
+                case 'quran_text':
+                    return await this.loadQuranText();
+                case 'audio':
+                    return await this.loadAudioData(params.surah);
+                default:
+                    throw new Error(`نوع غير معروف: ${type}`);
             }
         } catch (error) {
-            console.error(`❌ جميع محاولات تحميل ${type} فشلت، استخدام البيانات المدمجة`);
+            console.error(`❌ فشل تحميل ${type}:`, error);
             return this.getEmbeddedData(type);
         }
     }
 
-    async fetchUrl(url, params = {}) {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`فشل التحميل: ${response.status} - ${url}`);
-        }
-        
-        // إذا كان الملف صوتياً، نعيد الرابط مباشرة
-        if (url.includes('audio_surah')) {
-            const audioData = await response.json();
-            if (audioData && audioData.length > 0) {
-                return audioData;
-            } else {
-                throw new Error('لا توجد بيانات صوتية');
+    async loadPagesData() {
+        // استخدام API لتحميل بيانات الصفحات
+        try {
+            const response = await fetch(`${this.baseURL}/meta`);
+            const data = await response.json();
+            
+            if (data.code === 200) {
+                return this.formatPagesData(data.data);
             }
+        } catch (error) {
+            console.log('🔄 استخدام بيانات الصفحات المدمجة');
         }
         
-        return await response.json();
+        return this.generatePagesData();
+    }
+
+    async loadSurahsData() {
+        try {
+            const response = await fetch(`${this.baseURL}/surah`);
+            const data = await response.json();
+            
+            if (data.code === 200) {
+                return data.data;
+            }
+        } catch (error) {
+            console.log('🔄 استخدام بيانات السور المدمجة');
+        }
+        
+        return EMBEDDED_SURAHS_DATA;
+    }
+
+    async loadQuranText() {
+        try {
+            // تحميل القرآن كامل بنص عثماني
+            const response = await fetch(`${this.baseURL}/quran/quran-uthmani`);
+            const data = await response.json();
+            
+            if (data.code === 200) {
+                return data.data;
+            }
+        } catch (error) {
+            console.log('❌ فشل تحميل نص القرآن');
+        }
+        return null;
+    }
+
+    async loadAudioData(surahNumber) {
+        try {
+            // تحميل معلومات السورة الصوتية
+            const response = await fetch(`${this.baseURL}/surah/${surahNumber}/ar.alafasy`);
+            const data = await response.json();
+            
+            if (data.code === 200) {
+                return this.formatAudioData(data.data);
+            }
+        } catch (error) {
+            console.log('🔄 استخدام رابط صوتي مباشر');
+        }
+        
+        // رابط بديل مباشر
+        return [{
+            link: `https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/${surahNumber.toString().padStart(3, '0')}.mp3`,
+            name: 'عبد الباسط عبد الصمد'
+        }];
+    }
+
+    formatPagesData(metaData) {
+        // توليد بيانات الصفحات من البيانات الوصفية
+        const pages = [];
+        for (let page = 1; page <= 604; page++) {
+            pages.push({
+                page: page,
+                start: {
+                    surah_number: this.calculateSurahFromPage(page),
+                    name: { ar: this.getSurahName(this.calculateSurahFromPage(page)) },
+                    juz: Math.ceil(page / 20)
+                },
+                end: {
+                    surah_number: this.calculateSurahFromPage(page),
+                    name: { ar: this.getSurahName(this.calculateSurahFromPage(page)) }
+                }
+            });
+        }
+        return pages;
+    }
+
+    formatAudioData(surahData) {
+        if (surahData.ayahs && surahData.ayahs.length > 0) {
+            return surahData.ayahs.map(ayah => ({
+                link: ayah.audio,
+                name: 'مشاري العفاسي'
+            }));
+        }
+        return [];
     }
 
     getPageImageUrl(page) {
-        return this.dataSources.images.replace('{page}', page);
+        // استخدام مصادر متعددة للصور
+        return `https://everyayah.com/data/images_png/${page}.png`;
     }
 
-    async getSurahAudio(surahNumber) {
-        try {
-            return await this.loadData('audio', { surah: surahNumber });
-        } catch (error) {
-            console.error('❌ فشل تحميل الصوت، استخدام رابط مباشر');
-            // رابط صوتي مباشر كبديل
-            return [{
-                link: `https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/${surahNumber.toString().padStart(3, '0')}.mp3`
-            }];
+    getSurahAudioUrl(surahNumber) {
+        // رابط صوتي مباشر من المصدر
+        return `https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`;
+    }
+
+    // الدوال المساعدة
+    calculateSurahFromPage(page) {
+        const surahPages = {
+            1: 1, 2: 2, 50: 3, 77: 4, 106: 5, 128: 6, 151: 7, 177: 8,
+            187: 9, 208: 10, 221: 11, 235: 12, 249: 13, 255: 14, 262: 15,
+            267: 16, 282: 17, 293: 18, 305: 19, 312: 20, 322: 21, 332: 22,
+            342: 23, 350: 24, 359: 25, 367: 26, 377: 27, 385: 28, 396: 29,
+            404: 30, 411: 31, 415: 32, 418: 33, 428: 34, 434: 35, 440: 36,
+            446: 37, 453: 38, 458: 39, 467: 40, 477: 41, 483: 42, 489: 43,
+            496: 44, 499: 45, 502: 46, 507: 47, 511: 48, 515: 49, 518: 50,
+            520: 51, 523: 52, 526: 53, 528: 54, 531: 55, 534: 56, 537: 57,
+            542: 58, 545: 59, 549: 60, 551: 61, 553: 62, 554: 63, 556: 64,
+            558: 65, 560: 66, 562: 67, 564: 68, 566: 69, 568: 70, 570: 71,
+            572: 72, 574: 73, 575: 74, 577: 75, 578: 76, 580: 77, 582: 78,
+            583: 79, 585: 80, 586: 81, 587: 82, 587: 83, 589: 84, 590: 85,
+            591: 86, 591: 87, 592: 88, 593: 89, 594: 90, 595: 91, 595: 92,
+            596: 93, 596: 94, 597: 95, 597: 96, 598: 97, 598: 98, 599: 99,
+            599: 100, 600: 101, 600: 102, 601: 103, 601: 104, 602: 105,
+            602: 106, 603: 107, 603: 108, 603: 109, 604: 110, 604: 111,
+            604: 112, 604: 113, 604: 114
+        };
+        
+        for (let startPage in surahPages) {
+            if (page >= startPage) {
+                return surahPages[startPage];
+            }
+        }
+        return 1;
+    }
+
+    getSurahName(surahNumber) {
+        const surahNames = {
+            1: "الفاتحة", 2: "البقرة", 3: "آل عمران", 4: "النساء", 5: "المائدة",
+            6: "الأنعام", 7: "الأعراف", 8: "الأنفال", 9: "التوبة", 10: "يونس",
+            11: "هود", 12: "يوسف", 13: "الرعد", 14: "إبراهيم", 15: "الحجر",
+            16: "النحل", 17: "الإسراء", 18: "الكهف", 19: "مريم", 20: "طه",
+            21: "الأنبياء", 22: "الحج", 23: "المؤمنون", 24: "النور", 25: "الفرقان",
+            26: "الشعراء", 27: "النمل", 28: "القصص", 29: "العنكبوت", 30: "الروم",
+            31: "لقمان", 32: "السجدة", 33: "الأحزاب", 34: "سبأ", 35: "فاطر",
+            36: "يس", 37: "الصافات", 38: "ص", 39: "الزمر", 40: "غافر",
+            41: "فصلت", 42: "الشورى", 43: "الزخرف", 44: "الدخان", 45: "الجاثية",
+            46: "الأحقاف", 47: "محمد", 48: "الفتح", 49: "الحجرات", 50: "ق",
+            51: "الذاريات", 52: "الطور", 53: "النجم", 54: "القمر", 55: "الرحمن",
+            56: "الواقعة", 57: "الحديد", 58: "المجادلة", 59: "الحشر", 60: "الممتحنة",
+            61: "الصف", 62: "الجمعة", 63: "المنافقون", 64: "التغابن", 65: "الطلاق",
+            66: "التحريم", 67: "الملك", 68: "القلم", 69: "الحاقة", 70: "المعارج",
+            71: "نوح", 72: "الجن", 73: "المزمل", 74: "المدثر", 75: "القيامة",
+            76: "الإنسان", 77: "المرسلات", 78: "النبأ", 79: "النازعات", 80: "عبس",
+            81: "التكوير", 82: "الانفطار", 83: "المطففين", 84: "الانشقاق", 85: "البروج",
+            86: "الطارق", 87: "الأعلى", 88: "الغاشية", 89: "الفجر", 90: "البلد",
+            91: "الشمس", 92: "الليل", 93: "الضحى", 94: "الشرح", 95: "التين",
+            96: "العلق", 97: "القدر", 98: "البينة", 99: "الزلزلة", 100: "العاديات",
+            101: "القارعة", 102: "التكاثر", 103: "العصر", 104: "الهمزة", 105: "الفيل",
+            106: "قريش", 107: "الماعون", 108: "الكوثر", 109: "الكافرون", 110: "النصر",
+            111: "المسد", 112: "الإخلاص", 113: "الفلق", 114: "الناس"
+        };
+        return surahNames[surahNumber] || `سورة ${surahNumber}`;
+    }
+
+    generatePagesData() {
+        const pages = [];
+        for (let page = 1; page <= 604; page++) {
+            pages.push({
+                page: page,
+                start: {
+                    surah_number: this.calculateSurahFromPage(page),
+                    name: { ar: this.getSurahName(this.calculateSurahFromPage(page)) },
+                    juz: Math.ceil(page / 20)
+                },
+                end: {
+                    surah_number: this.calculateSurahFromPage(page),
+                    name: { ar: this.getSurahName(this.calculateSurahFromPage(page)) }
+                }
+            });
+        }
+        return pages;
+    }
+
+    getEmbeddedData(type) {
+        switch(type) {
+            case 'pages':
+                return this.generatePagesData();
+            case 'surahs':
+                return EMBEDDED_SURAHS_DATA;
+            default:
+                throw new Error(`لا توجد بيانات مدمجة لـ ${type}`);
         }
     }
+}
 
     getEmbeddedData(type) {
         switch(type) {
