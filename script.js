@@ -1,10 +1,8 @@
-// script.js
-// GT-QURANREADER-WEB — نسخة محدثة لعرض نصي/صور متزامن + صوت
-// يعتمد على: https://api.alquran.cloud/v1
-// مؤلف: مُعدّ لك بناءً على طلبك
+// script.js - النسخة المصححة والكاملة
+// GT-QURANREADER-WEB v4.0
 
 // ========================================
-// بيانات السور المضمنة (لاستعمال المعلومات الأساسية)
+// بيانات السور الكاملة (114 سورة)
 // ========================================
 const EMBEDDED_SURAHS_DATA = [
     { number: 1, name: { ar: "الفاتحة", en: "Al-Fatiha" }, verses_count: 7, revelation_place: { ar: "مكية" }, start_page: 1 },
@@ -128,9 +126,11 @@ const EMBEDDED_SURAHS_DATA = [
 // ========================================
 function generatePagesData() {
     const pages = [];
+    
     for (let page = 1; page <= 604; page++) {
         const surah = getSurahByPage(page);
         const juz = calculateJuzFromPage(page);
+        
         pages.push({
             page: page,
             start: {
@@ -144,11 +144,12 @@ function generatePagesData() {
             }
         });
     }
+    
     return pages;
 }
 
 // ========================================
-// QuranDataManager - fetches audio/text/pages
+// مدير البيانات
 // ========================================
 class QuranDataManager {
     constructor() {
@@ -161,7 +162,10 @@ class QuranDataManager {
 
     async loadData(type, params = {}) {
         const cacheKey = `${type}-${JSON.stringify(params)}`;
-        if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+        
+        if (this.cache.has(cacheKey)) {
+            return this.cache.get(cacheKey);
+        }
 
         try {
             let data;
@@ -175,81 +179,65 @@ class QuranDataManager {
                 case 'audio':
                     data = await this.loadAudioData(params.surah);
                     break;
-                case 'text':
-                    data = await this.loadTextData();
-                    break;
                 default:
                     throw new Error(`نوع غير معروف: ${type}`);
             }
+            
             this.cache.set(cacheKey, data);
             return data;
-        } catch (err) {
-            console.error(`❌ فشل تحميل ${type}:`, err);
+        } catch (error) {
+            console.error(`❌ فشل تحميل ${type}:`, error);
             return this.getEmbeddedData(type);
         }
     }
 
-    // تحميل بيانات النص الكامل (quran-uthmani)
-    async loadTextData() {
-        const url = `${this.baseURL}/quran/quran-uthmani`;
-        try {
-            const resp = await fetch(url);
-            const json = await resp.json();
-            if (json.code === 200 && json.data && json.data.surahs) {
-                // ترجع مصفوفة السور مع آياتها
-                console.log('📜 تم جلب النص العثماني من alquran.cloud');
-                return json.data.surahs;
-            } else {
-                throw new Error('استجابة غير متوقعة من API النص');
-            }
-        } catch (err) {
-            console.error('❌ خطأ في جلب نص القرآن:', err);
-            return []; // fallback handled by المستدعي
-        }
-    }
-
-    // تحميل بيانات الصوت لسورة محددة
     async loadAudioData(surahNumber) {
         try {
+            // محاولة تحميل من API
             const response = await fetch(`${this.baseURL}/surah/${surahNumber}/ar.alafasy`);
             const data = await response.json();
-            if (data.code === 200 && data.data && data.data.ayahs && data.data.ayahs.length > 0) {
-                // نأخذ أول آية كرابط عام للمصورة (many APIs give ayahs[].audio)
-                const audioLink = data.data.ayahs[0].audio || this.getFallbackAudioUrl(surahNumber);
-                return [{ link: audioLink, name: 'مشاري العفاسي' }];
+            
+            if (data.code === 200 && data.data.ayahs && data.data.ayahs.length > 0) {
+                return [{
+                    link: data.data.ayahs[0].audio || this.getFallbackAudioUrl(surahNumber),
+                    name: 'مشاري العفاسي'
+                }];
             }
-        } catch (err) {
-            console.warn('📻 تعذر جلب صوت العفاسي من API، سيتم استخدام رابط احتياطي', err);
+        } catch (error) {
+            console.log('📻 استخدام رابط صوتي مباشر');
         }
-        // رابط بديل افتراضي
+        
+        // رابط بديل مباشر
         return [{
             link: this.getFallbackAudioUrl(surahNumber),
             name: 'عبد الباسط عبد الصمد'
         }];
     }
 
-    getFallbackAudioUrl(surahNumber) {
-        const surahStr = String(surahNumber).padStart(3, '0');
-        return `https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/${surahStr}.mp3`;
+    getPageImageUrl(page) {
+        const pageStr = page.toString().padStart(3, '0');
+        return `${this.fallbackImageURL}${page}.png`;
     }
 
-    getPageImageUrl(page) {
-        // بعض السيرفرات تستخدم ترقيم 1.png ... 604.png
-        // نحتفظ بالخيار كما كان
-        return `${this.fallbackImageURL}${page}.png`;
+    getFallbackAudioUrl(surahNumber) {
+        const surahStr = surahNumber.toString().padStart(3, '0');
+        return `https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/${surahStr}.mp3`;
     }
 
     getEmbeddedData(type) {
         switch(type) {
-            case 'pages': return this.pagesData;
-            case 'surahs': return this.surahsData;
-            default: return [];
+            case 'pages':
+                return this.pagesData;
+            case 'surahs':
+                return this.surahsData;
+            default:
+                return [];
         }
     }
 }
 
 // ========================================
-// دوال مساعدة عامة
+// دوال مساعدة
 // ========================================
 function getSurahByPage(page) {
     for (let i = EMBEDDED_SURAHS_DATA.length - 1; i >= 0; i--) {
@@ -262,8 +250,11 @@ function getSurahByPage(page) {
 
 function calculateJuzFromPage(page) {
     const juzPages = [1, 22, 42, 62, 82, 102, 122, 142, 162, 182, 202, 222, 242, 262, 282, 302, 322, 342, 362, 382, 402, 422, 442, 462, 482, 502, 522, 542, 562, 582];
+    
     for (let i = juzPages.length - 1; i >= 0; i--) {
-        if (page >= juzPages[i]) return i + 1;
+        if (page >= juzPages[i]) {
+            return i + 1;
+        }
     }
     return 1;
 }
@@ -278,30 +269,27 @@ function getJuzStartPage(juz) {
 // ========================================
 class QuranReader {
     constructor() {
-        // حالة العرض
         this.currentPage = 1;
         this.totalPages = 604;
-        this.zoomLevel = 100;
+        this.currentAudio = null;
         this.isPlaying = false;
+        this.zoomLevel = 100;
         this.currentAudioSurah = null;
+        this.availableSurahsInPage = [];
         this.autoPlayNext = true;
         this.dataManager = new QuranDataManager();
         this.isOnline = navigator.onLine;
-        this.pagesData = null;
-        this.surahsData = null;
-        this.quranText = null; // سيحتوي على مصفوفة السور من API النص
-        this.viewMode = localStorage.getItem('gt_quran_view') || 'image'; // 'image' or 'text'
 
-        // عناصر DOM (سيتم تهيئتها)
         this.initializeElements();
         this.setupEventListeners();
+        this.setupScrollHandler();
         this.setupOnlineHandler();
         this.setDefaultTheme();
-        this.createViewToggleIfMissing(); // زر التبديل في شريط النص
         this.loadInitialData();
     }
 
     initializeElements() {
+        // العناصر الأساسية
         this.quranImg = document.getElementById('quran-img');
         this.pageNumber = document.getElementById('page-number');
         this.surahInfo = document.getElementById('surah-info');
@@ -312,150 +300,59 @@ class QuranReader {
         this.connectionStatus = document.getElementById('connection-status');
         this.connectionIcon = document.getElementById('connection-icon');
 
+        // العناصر الجديدة لاختيار السورة
+        this.surahSelector = document.getElementById('surah-selector');
+        this.surahSelectionList = document.getElementById('surah-selection-list');
+
+        // عناصر التحكم في النص
         this.zoomInBtn = document.getElementById('zoom-in');
         this.zoomOutBtn = document.getElementById('zoom-out');
         this.resetZoomBtn = document.getElementById('reset-zoom');
         this.zoomLevelDisplay = document.getElementById('zoom-level');
 
+        // الأزرار العائمة
         this.prevBtn = document.getElementById('prev-page-btn');
         this.nextBtn = document.getElementById('next-page-btn');
         this.themeBtn = document.getElementById('toggle-theme');
         this.audioBtn = document.getElementById('audio-toggle');
         this.scrollTopBtn = document.getElementById('scroll-to-top');
+        this.pwaInstallBtn = document.getElementById('pwa-install');
 
+        // مشغل الصوت العائم
         this.audioFloating = document.querySelector('.audio-player-floating');
         this.closeAudioBtn = document.getElementById('close-audio');
         this.audioInfo = document.getElementById('audio-info');
 
+        // البحث
         this.searchInput = document.getElementById('search-input');
         this.searchBtn = document.getElementById('search-btn');
         this.searchResults = document.getElementById('search-results');
 
+        // التنقل السريع
         this.navSurah = document.getElementById('nav-surah');
         this.navJuz = document.getElementById('nav-juz');
         this.navSajda = document.getElementById('nav-sajda');
 
+        // النوافذ المنبثقة
         this.surahModal = document.getElementById('surah-list');
         this.juzModal = document.getElementById('juz-list');
-        this.surahSelector = document.getElementById('surah-selector');
-        this.surahSelectionList = document.getElementById('surah-selection-list');
-
-        // عنصر نص القرآن: إذا لم يكن في HTML، ننشئه ديناميكيًا داخل .quran-page
-        this.textContainer = document.getElementById('quran-text');
-        if (!this.textContainer) {
-            const qPage = document.querySelector('.quran-page');
-            this.textContainer = document.createElement('div');
-            this.textContainer.id = 'quran-text';
-            // التنسيق الافتراضي للنص
-            this.textContainer.style.textAlign = 'right';
-            this.textContainer.style.direction = 'rtl';
-            this.textContainer.style.padding = '10px';
-            this.textContainer.style.display = 'none';
-            qPage.appendChild(this.textContainer);
-        }
-    }
-
-    // ينشئ زر تبديل العرض داخل شريط text-controls إذا لم يوجد
-    createViewToggleIfMissing() {
-        const textControls = document.querySelector('.text-controls');
-        if (!textControls) return;
-
-        // إذا كان هناك بالفعل زر معرف id toggle-view، نستخدمه
-        let toggleBtn = document.getElementById('toggle-view');
-        if (!toggleBtn) {
-            toggleBtn = document.createElement('button');
-            toggleBtn.id = 'toggle-view';
-            toggleBtn.className = 'zoom-btn';
-            toggleBtn.title = 'التبديل بين عرض المصحف / النص';
-            toggleBtn.innerHTML = '<i class="fas fa-file-image"></i>';
-            // نضيفه في نهاية عناصر التحكم
-            textControls.appendChild(toggleBtn);
-        }
-
-        // ضبط أيقونة حسب النمط الحالي
-        this.updateToggleButtonUI(toggleBtn);
-        toggleBtn.addEventListener('click', () => this.toggleView());
-    }
-
-    updateToggleButtonUI(btn) {
-        if (!btn) return;
-        if (this.viewMode === 'text') {
-            btn.innerHTML = '<i class="fas fa-file-alt"></i>'; // أيقونة للنص
-            btn.title = 'معاينة النص';
-        } else {
-            btn.innerHTML = '<i class="fas fa-file-image"></i>'; // أيقونة للصور
-            btn.title = 'معاينة المصحف المصوّر';
-        }
-    }
-
-    setupEventListeners() {
-        // التنقل
-        if (this.prevBtn) this.prevBtn.addEventListener('click', () => this.previousPage());
-        if (this.nextBtn) this.nextBtn.addEventListener('click', () => this.nextPage());
-
-        if (this.themeBtn) this.themeBtn.addEventListener('click', () => this.toggleTheme());
-
-        if (this.audioBtn) this.audioBtn.addEventListener('click', () => this.toggleAudio());
-        if (this.closeAudioBtn) this.closeAudioBtn.addEventListener('click', () => this.hideAudioPlayer());
-
-        if (this.audioPlayer) {
-            this.audioPlayer.addEventListener('ended', () => this.onAudioEnded());
-            this.audioPlayer.addEventListener('play', () => this.onAudioPlay());
-            this.audioPlayer.addEventListener('pause', () => this.onAudioPause());
-        }
-
-        if (this.zoomInBtn) this.zoomInBtn.addEventListener('click', () => this.zoomIn());
-        if (this.zoomOutBtn) this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
-        if (this.resetZoomBtn) this.resetZoomBtn.addEventListener('click', () => this.resetZoom());
-
-        if (this.scrollTopBtn) this.scrollTopBtn.addEventListener('click', () => this.scrollToTop());
-
-        if (this.searchBtn) this.searchBtn.addEventListener('click', () => this.performSearch());
-        if (this.searchInput) this.searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.performSearch();
-        });
-
-        if (this.navSurah) this.navSurah.addEventListener('click', () => this.showSurahList());
-        if (this.navJuz) this.navJuz.addEventListener('click', () => this.showJuzList());
-        if (this.navSajda) this.navSajda.addEventListener('click', () => this.showSajdaInfo());
-
-        document.querySelectorAll('.close').forEach(closeBtn => {
-            closeBtn.addEventListener('click', (e) => {
-                const modal = e.target.closest('.modal');
-                if (modal) modal.style.display = 'none';
-            });
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target.classList && e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target === this.searchInput) return;
-
-            if (e.key === 'ArrowRight' || e.key === 'd') this.previousPage();
-            if (e.key === 'ArrowLeft' || e.key === 'a') this.nextPage();
-            if (e.key === ' ') {
-                e.preventDefault();
-                this.toggleAudio();
-            }
-            if (e.key === 'Escape') this.hideAudioPlayer();
-        });
-
-        window.addEventListener('scroll', () => this.toggleScrollTopButton());
     }
 
     setupOnlineHandler() {
-        window.addEventListener('online', () => this.updateConnectionStatus(true));
-        window.addEventListener('offline', () => this.updateConnectionStatus(false));
+        window.addEventListener('online', () => {
+            this.updateConnectionStatus(true);
+        });
+
+        window.addEventListener('offline', () => {
+            this.updateConnectionStatus(false);
+        });
+
         this.updateConnectionStatus(navigator.onLine);
     }
 
     updateConnectionStatus(online) {
         this.isOnline = online;
-        if (!this.connectionStatus || !this.connectionIcon) return;
+
         if (online) {
             this.connectionStatus.textContent = 'متصل بالإنترنت';
             this.connectionIcon.className = 'fas fa-wifi';
@@ -469,323 +366,102 @@ class QuranReader {
 
     setDefaultTheme() {
         document.body.classList.add('dark-mode');
-        const icon = this.themeBtn ? this.themeBtn.querySelector('i') : null;
-        if (icon) icon.className = 'fas fa-sun';
-        if (this.themeBtn) this.themeBtn.title = 'الوضع النهاري';
+        const icon = this.themeBtn.querySelector('i');
+        icon.className = 'fas fa-sun';
+        this.themeBtn.title = 'الوضع النهاري';
     }
 
-    // ========================================
-    // التحميل المبدئي للبيانات (صفحات + سور + نص)
-    // ========================================
-    async loadInitialData() {
-        try {
-            console.log('📄 بدء تحميل بيانات القرآن...');
-            // pages و surahs سريعة (مضمنة)، نص قد يحتاج وقتًا
-            const [pagesData, surahsData, quranText] = await Promise.all([
-                this.dataManager.loadData('pages'),
-                this.dataManager.loadData('surahs'),
-                this.dataManager.loadData('text')
-            ]);
+    setupEventListeners() {
+        // التنقل بين الصفحات
+        this.prevBtn.addEventListener('click', () => this.previousPage());
+        this.nextBtn.addEventListener('click', () => this.nextPage());
 
-            this.pagesData = pagesData;
-            this.surahsData = surahsData;
-            this.quranText = (quranText && quranText.length > 0) ? quranText : null;
+        // تبديل الوضع
+        this.themeBtn.addEventListener('click', () => this.toggleTheme());
 
-            this.hideLoadingScreen();
-            this.updatePage(); // يعرض الصفحة الحالية حسب viewMode
-            console.log('✅ تم تحميل البيانات بنجاح');
-        } catch (err) {
-            console.error('❌ خطأ في تحميل البيانات:', err);
-            // استخدام البيانات المضمنة كاحتياط
-            this.pagesData = this.dataManager.pagesData;
-            this.surahsData = this.dataManager.surahsData;
-            this.quranText = null;
-            this.hideLoadingScreen();
-            this.updatePage();
-        }
-    }
+        // التحكم الصوتي
+        this.audioBtn.addEventListener('click', () => this.toggleAudio());
+        this.closeAudioBtn.addEventListener('click', () => this.hideAudioPlayer());
+        this.audioPlayer.addEventListener('ended', () => this.onAudioEnded());
+        this.audioPlayer.addEventListener('play', () => this.onAudioPlay());
+        this.audioPlayer.addEventListener('pause', () => this.onAudioPause());
 
-    hideLoadingScreen() {
-        setTimeout(() => {
-            if (this.loadingScreen) this.loadingScreen.style.display = 'none';
-            if (this.container) this.container.style.display = 'flex';
-        }, 700);
-    }
+        // التحكم في التكبير
+        this.zoomInBtn.addEventListener('click', () => this.zoomIn());
+        this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
+        this.resetZoomBtn.addEventListener('click', () => this.resetZoom());
 
-    // ========================================
-    // تغيير الصفحة (تحديث العرض: نص أو صورة)
-    // ========================================
-    async updatePage() {
-        try {
-            // تحديث بيانات الصفحة
-            this.pageNumber.textContent = `الصفحة: ${this.currentPage}`;
-            this.updatePageInfo();
-            this.updateAvailableSurahs();
+        // الصعود للأعلى
+        this.scrollTopBtn.addEventListener('click', () => this.scrollToTop());
 
-            if (this.viewMode === 'text') {
-                // عرض نصي - إن لم تكن البيانات موجودة نظهر رسالة أو نعود للصور
-                if (this.quranText) {
-                    this.displayTextPage(this.currentPage);
-                } else {
-                    // نص غير متوفر: نعرض إشعار ونعيد للعرض الصوري
-                    this.showMessage('تعذر تحميل النص العثماني — سيتم عرض المصحف المصوّر', 'warning');
-                    this.viewMode = 'image';
-                    localStorage.setItem('gt_quran_view', this.viewMode);
-                    this.displayImagePage(this.currentPage);
-                    this.updateToggleButtonUI(document.getElementById('toggle-view'));
-                }
-            } else {
-                // عرض صورة
-                this.displayImagePage(this.currentPage);
-            }
+        // البحث
+        this.searchBtn.addEventListener('click', () => this.performSearch());
+        this.searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.performSearch();
+        });
 
-            this.preloadNextPages();
-        } catch (err) {
-            console.error('خطأ في updatePage:', err);
-        }
-    }
+        // التنقل السريع
+        this.navSurah.addEventListener('click', () => this.showSurahList());
+        this.navJuz.addEventListener('click', () => this.showJuzList());
+        this.navSajda.addEventListener('click', () => this.showSajdaInfo());
 
-    updatePageInfo() {
-        if (!this.pagesData) return;
-        const pageInfo = this.pagesData.find(p => p.page === this.currentPage) || null;
-        if (pageInfo) {
-            let surahText = `السورة: ${pageInfo.start.name.ar}`;
-            if (pageInfo.end && pageInfo.end.surah_number !== pageInfo.start.surah_number) {
-                surahText += ` - ${pageInfo.end.name.ar}`;
-            }
-            if (this.surahInfo) this.surahInfo.textContent = surahText;
-            if (this.juzInfo) this.juzInfo.textContent = `الجزء: ${pageInfo.start.juz}`;
-        }
-    }
-
-    updateAvailableSurahs() {
-        this.availableSurahsInPage = [];
-        const surah = getSurahByPage(this.currentPage);
-        if (surah) {
-            this.availableSurahsInPage.push({
-                number: surah.number,
-                name: surah.name.ar,
-                verses_count: surah.verses_count,
-                revelation_place: surah.revelation_place.ar
+        // إغلاق النوافذ
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', (e) => {
+                e.target.closest('.modal').style.display = 'none';
             });
-        }
-    }
+        });
 
-    // ========================================
-    // عرض الصور
-    // ========================================
-    displayImagePage(pageNumber) {
-        if (!this.quranImg) return;
-        // تأكد من أن عنصر النص مخفي
-        if (this.textContainer) this.textContainer.style.display = 'none';
-
-        const imageUrl = this.dataManager.getPageImageUrl(pageNumber);
-        this.quranImg.style.display = 'block';
-        this.quranImg.src = imageUrl;
-        this.quranImg.alt = `صفحة القرآن ${pageNumber}`;
-
-        this.quranImg.onload = () => {
-            console.log(`✅ تم تحميل صفحة الصورة ${pageNumber}`);
-        };
-
-        this.quranImg.onerror = () => {
-            console.error(`❌ فشل تحميل صفحة الصورة ${pageNumber}`);
-            this.showImageError();
-        };
-    }
-
-    showImageError() {
-        if (!this.quranImg) return;
-        this.quranImg.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='900' viewBox='0 0 700 900'><rect width='100%' height='100%' fill='%231a1a2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='24' fill='%23e9ecef'>صفحة ${this.currentPage}</text></svg>`;
-    }
-
-    preloadNextPages() {
-        const nextPages = [this.currentPage + 1, this.currentPage + 2];
-        nextPages.forEach(page => {
-            if (page <= this.totalPages) {
-                const img = new Image();
-                img.src = this.dataManager.getPageImageUrl(page);
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
             }
+        });
+
+        // اختصارات لوحة المفاتيح
+        document.addEventListener('keydown', (e) => {
+            if (e.target === this.searchInput) return;
+
+            if (e.key === 'ArrowRight' || e.key === 'd') this.previousPage();
+            if (e.key === 'ArrowLeft' || e.key === 'a') this.nextPage();
+            if (e.key === ' ') {
+                e.preventDefault();
+                this.toggleAudio();
+            }
+            if (e.key === 'Escape') this.hideAudioPlayer();
         });
     }
 
-    // ========================================
-    // عرض النص: يعرض السورة التي تحتوي الصفحة (قابلة للتطوير لعرض فقط آيات الصفحة)
-    // ========================================
-    displayTextPage(pageNumber) {
-        // إخفاء الصورة
-        if (this.quranImg) this.quranImg.style.display = 'none';
-        if (!this.textContainer) return;
-
-        // العثور على السورة التي تبدأ في أو قبل الصفحة
-        const surahMeta = getSurahByPage(pageNumber);
-        if (!this.quranText) {
-            this.textContainer.innerHTML = `<p>نص القرآن غير متاح حالياً.</p>`;
-            this.textContainer.style.display = 'block';
-            return;
-        }
-
-        // إظهار السورة الكاملة (لأن API يعيد سور مع آياتها) — نربط الصفحة بالبداية التقريبية
-        const surah = this.quranText.find(s => s.number === surahMeta.number);
-        if (!surah) {
-            this.textContainer.innerHTML = `<p>تعذر العثور على السورة في نص API.</p>`;
-            this.textContainer.style.display = 'block';
-            return;
-        }
-
-        // بناء HTML للآيات — نضع span لكل آية مع رقم الآية داخل السورة
-        const versesHTML = surah.ayahs.map(a => {
-            // a.numberInSurah و a.text (عثماني) متوقعان
-            const ayahNum = a.numberInSurah || '';
-            const ayahText = a.text || a.translation || '';
-            // إضافة خاصية data لتسهيل البحث أو التنقل
-            return `<div class="ayah-block" data-ayah-global="${a.number}" style="margin:6px 0; font-size: 1.6rem; line-height:2.2;">
-                        <span class="ayah-text" style="font-family: 'scheherazade', 'Amiri', serif;">${ayahText}</span>
-                        <span class="ayah-number" style="display:inline-block; margin-right:8px; color: rgba(46,134,171,0.9); font-weight:600;">(${ayahNum})</span>
-                    </div>`;
-        }).join('\n');
-
-        // رأس السورة
-        const headerHTML = `<div style="text-align:center; margin-bottom:12px;">
-                                <h2 style="margin:0; color: #2e86ab; font-weight:700;">سورة ${surah.name}</h2>
-                                <div style="opacity:0.8; margin-top:6px;">آيات: ${surah.ayahs.length}</div>
-                            </div>`;
-
-        this.textContainer.innerHTML = headerHTML + `<div class="verses-list">${versesHTML}</div>`;
-        this.textContainer.style.display = 'block';
-        // نمرّر إلى بداية السورة إذا احتجنا
-        this.textContainer.scrollTop = 0;
+    setupScrollHandler() {
+        window.addEventListener('scroll', () => {
+            this.toggleScrollTopButton();
+        });
     }
 
-    // ========================================
-    // التبديل بين العرضين
-    // ========================================
-    toggleView() {
-        this.viewMode = (this.viewMode === 'text') ? 'image' : 'text';
-        localStorage.setItem('gt_quran_view', this.viewMode);
-        const toggleBtn = document.getElementById('toggle-view');
-        this.updateToggleButtonUI(toggleBtn);
-        this.updatePage();
-    }
-
-    // ========================================
-    // صوت: تشغيل / إيقاف وواجهات مساعدة
-    // ========================================
-    async toggleAudio() {
-        if (this.isPlaying) {
-            this.stopAudio();
+    toggleScrollTopButton() {
+        if (window.pageYOffset > 300) {
+            this.scrollTopBtn.classList.add('show');
         } else {
-            if (this.availableSurahsInPage && this.availableSurahsInPage.length === 1) {
-                await this.playSurahAudio(this.availableSurahsInPage[0].number);
-            } else {
-                // إن كانت الصفحة تحتوي على أكثر من سورة أو غير معروفة، نختار السورة الحالية
-                const surah = getSurahByPage(this.currentPage);
-                if (surah) await this.playSurahAudio(surah.number);
-            }
+            this.scrollTopBtn.classList.remove('show');
         }
     }
 
-    async playSurahAudio(surahNumber) {
-        try {
-            const audioData = await this.dataManager.loadData('audio', { surah: surahNumber });
-            if (audioData && audioData.length > 0) {
-                this.currentAudio = audioData[0].link;
-                this.audioPlayer.src = this.currentAudio;
-                this.showAudioPlayer();
-                const surahMeta = this.surahsData.find(s => s.number === surahNumber);
-                this.audioInfo.textContent = `سورة ${surahMeta ? surahMeta.name.ar : surahNumber} - الصفحة ${this.currentPage}`;
-
-                this.audioPlayer.onerror = () => {
-                    console.error('❌ فشل تشغيل الصوت');
-                    this.showMessage('تعذر تشغيل التلاوة', 'error');
-                    this.stopAudio();
-                };
-
-                await this.audioPlayer.play();
-                this.currentAudioSurah = surahNumber;
-            } else {
-                this.showMessage('تعذر العثور على التلاوة لهذه السورة', 'warning');
-            }
-        } catch (err) {
-            console.error('خطأ في تشغيل الصوت:', err);
-            this.showMessage('تعذر تشغيل التلاوة. يرجى المحاولة لاحقاً.', 'error');
-        }
+    scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     }
 
-    stopAudio() {
-        if (this.audioPlayer) {
-            this.audioPlayer.pause();
-            this.audioPlayer.currentTime = 0;
-        }
-        this.isPlaying = false;
-        if (this.audioBtn) {
-            this.audioBtn.classList.remove('playing');
-            this.audioBtn.innerHTML = '<i class="fas fa-play"></i>';
-            this.audioBtn.title = 'تشغيل التلاوة';
-        }
-    }
-
-    showAudioPlayer() {
-        if (this.audioFloating) this.audioFloating.classList.add('show');
-    }
-
-    hideAudioPlayer() {
-        if (this.audioFloating) this.audioFloating.classList.remove('show');
-        this.stopAudio();
-    }
-
-    onAudioPlay() {
-        this.isPlaying = true;
-        if (this.audioBtn) {
-            this.audioBtn.classList.add('playing');
-            this.audioBtn.innerHTML = '<i class="fas fa-stop"></i>';
-            this.audioBtn.title = 'إيقاف التلاوة';
-        }
-    }
-
-    onAudioPause() {
-        if (this.audioBtn) {
-            this.audioBtn.classList.remove('playing');
-            this.audioBtn.innerHTML = '<i class="fas fa-play"></i>';
-            this.audioBtn.title = 'تشغيل التلاوة';
-        }
-    }
-
-    onAudioEnded() {
-        if (this.autoPlayNext && this.currentAudioSurah) {
-            this.playNextSurah();
-        } else {
-            this.stopAudio();
-        }
-    }
-
-    async playNextSurah() {
-        const nextSurahNumber = this.currentAudioSurah + 1;
-        if (nextSurahNumber <= 114) {
-            const nextSurah = this.surahsData.find(s => s.number === nextSurahNumber);
-            if (nextSurah) {
-                this.currentPage = nextSurah.start_page;
-                await this.updatePage();
-                await this.playSurahAudio(nextSurahNumber);
-            }
-        } else {
-            this.stopAudio();
-            this.showMessage('تم الانتهاء من القرآن الكريم', 'success');
-        }
-    }
-
-    // ========================================
-    // أدوات النص (تكبير/تصغير)
-    // ========================================
     zoomIn() {
-        if (this.zoomLevel < 200) {
+        if (this.zoomLevel < 150) {
             this.zoomLevel += 10;
             this.applyZoom();
         }
     }
 
     zoomOut() {
-        if (this.zoomLevel > 60) {
+        if (this.zoomLevel > 70) {
             this.zoomLevel -= 10;
             this.applyZoom();
         }
@@ -798,14 +474,280 @@ class QuranReader {
 
     applyZoom() {
         document.body.style.fontSize = `${this.zoomLevel}%`;
-        if (this.zoomLevelDisplay) this.zoomLevelDisplay.textContent = `${this.zoomLevel}%`;
+        this.zoomLevelDisplay.textContent = `${this.zoomLevel}%`;
     }
 
-    // ========================================
-    // البحث: يدعم الآن البحث في أسماء السور، ويمكن البحث النصي إذا كانت النصوص محملة
-    // ========================================
+    async loadInitialData() {
+        try {
+            console.log('📄 بدء تحميل بيانات القرآن...');
+            
+            const [pagesData, surahsData] = await Promise.all([
+                this.dataManager.loadData('pages'),
+                this.dataManager.loadData('surahs')
+            ]);
+
+            this.pagesData = pagesData;
+            this.surahsData = surahsData;
+
+            this.hideLoadingScreen();
+            this.updatePage();
+            
+            console.log('✅ تم تحميل البيانات بنجاح');
+
+        } catch (error) {
+            console.error('❌ خطأ في تحميل البيانات:', error);
+            this.pagesData = this.dataManager.pagesData;
+            this.surahsData = this.dataManager.surahsData;
+            this.hideLoadingScreen();
+            this.updatePage();
+        }
+    }
+
+    hideLoadingScreen() {
+        setTimeout(() => {
+            this.loadingScreen.style.display = 'none';
+            this.container.style.display = 'flex';
+        }, 1000);
+    }
+
+    async updatePage() {
+        try {
+            const imageUrl = this.dataManager.getPageImageUrl(this.currentPage);
+            this.quranImg.src = imageUrl;
+            this.quranImg.alt = `صفحة القرآن ${this.currentPage}`;
+
+            this.quranImg.onload = () => {
+                console.log(`✅ تم تحميل صفحة ${this.currentPage}`);
+            };
+
+            this.quranImg.onerror = () => {
+                console.error(`❌ فشل تحميل صفحة ${this.currentPage}`);
+                this.showImageError();
+            };
+
+            this.pageNumber.textContent = `الصفحة: ${this.currentPage}`;
+            this.updatePageInfo();
+            this.updateAvailableSurahs();
+            this.preloadNextPages();
+
+        } catch (error) {
+            console.error('خطأ في تحديث الصفحة:', error);
+        }
+    }
+
+    showImageError() {
+        this.quranImg.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="700" height="900" viewBox="0 0 700 900"><rect width="100%" height="100%" fill="%231a1a2e"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="%23e9ecef">صفحة ${this.currentPage}</text></svg>`;
+    }
+
+    preloadNextPages() {
+        const nextPages = [this.currentPage + 1, this.currentPage + 2];
+        nextPages.forEach(page => {
+            if (page <= this.totalPages) {
+                const img = new Image();
+                img.src = this.dataManager.getPageImageUrl(page);
+            }
+        });
+    }
+
+    updatePageInfo() {
+        if (!this.pagesData) return;
+
+        const pageInfo = this.pagesData.find(page => page.page === this.currentPage);
+        if (pageInfo) {
+            let surahText = `السورة: ${pageInfo.start.name.ar}`;
+
+            if (pageInfo.end && pageInfo.end.surah_number !== pageInfo.start.surah_number) {
+                surahText += ` - ${pageInfo.end.name.ar}`;
+            }
+
+            this.surahInfo.textContent = surahText;
+            this.juzInfo.textContent = `الجزء: ${pageInfo.start.juz}`;
+        }
+    }
+
+    updateAvailableSurahs() {
+        this.availableSurahsInPage = [];
+        const surah = getSurahByPage(this.currentPage);
+        
+        if (surah) {
+            this.availableSurahsInPage.push({
+                number: surah.number,
+                name: surah.name.ar,
+                verses_count: surah.verses_count,
+                revelation_place: surah.revelation_place.ar
+            });
+        }
+    }
+
+    previousPage() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.updatePage();
+        }
+    }
+
+    nextPage() {
+        if (this.currentPage < this.totalPages) {
+            this.currentPage++;
+            this.updatePage();
+        }
+    }
+
+    goToPage(pageNum) {
+        if (pageNum >= 1 && pageNum <= this.totalPages) {
+            this.currentPage = pageNum;
+            this.updatePage();
+        }
+    }
+
+    toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        document.body.classList.toggle('light-mode');
+
+        const icon = this.themeBtn.querySelector('i');
+        if (document.body.classList.contains('dark-mode')) {
+            icon.className = 'fas fa-sun';
+            this.themeBtn.title = 'الوضع النهاري';
+        } else {
+            icon.className = 'fas fa-moon';
+            this.themeBtn.title = 'الوضع الليلي';
+        }
+    }
+
+    async toggleAudio() {
+        if (this.isPlaying) {
+            this.stopAudio();
+        } else {
+            if (this.availableSurahsInPage.length === 1) {
+                await this.playSurahAudio(this.availableSurahsInPage[0].number);
+            } else if (this.availableSurahsInPage.length > 1) {
+                this.showSurahSelection();
+            } else {
+                await this.playCurrentPageAudio();
+            }
+        }
+    }
+
+    showSurahSelection() {
+        if (this.availableSurahsInPage.length === 0) return;
+
+        const selectionHTML = this.availableSurahsInPage.map(surah => `
+            <div class="surah-audio-item" data-surah="${surah.number}">
+                <div class="surah-audio-info">
+                    <div class="surah-audio-name">${surah.number}. ${surah.name}</div>
+                    <div class="surah-audio-details">${surah.revelation_place} | آيات: ${surah.verses_count}</div>
+                </div>
+                <div class="play-audio-icon">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>
+        `).join('');
+
+        this.surahSelectionList.innerHTML = selectionHTML;
+        this.surahSelector.style.display = 'flex';
+
+        this.surahSelectionList.querySelectorAll('.surah-audio-item').forEach(item => {
+            item.addEventListener('click', async () => {
+                const surahNum = parseInt(item.dataset.surah);
+                this.surahSelector.style.display = 'none';
+                await this.playSurahAudio(surahNum);
+            });
+        });
+    }
+
+    async playSurahAudio(surahNumber) {
+        try {
+            const audioData = await this.dataManager.loadData('audio', { surah: surahNumber });
+            
+            if (audioData && audioData.length > 0) {
+                this.currentAudio = audioData[0].link;
+                this.audioPlayer.src = this.currentAudio;
+                this.showAudioPlayer();
+                
+                const surah = this.surahsData.find(s => s.number === surahNumber);
+                this.audioInfo.textContent = `سورة ${surah.name.ar} - الصفحة ${this.currentPage}`;
+
+                this.audioPlayer.onerror = () => {
+                    console.error('❌ فشل تشغيل الصوت');
+                    this.showMessage('تعذر تشغيل التلاوة', 'error');
+                    this.stopAudio();
+                };
+
+                await this.audioPlayer.play();
+                this.currentAudioSurah = surahNumber;
+            } else {
+                this.showMessage('تعذر العثور على التلاوة لهذه السورة', 'warning');
+            }
+        } catch (error) {
+            console.error('خطأ في تشغيل الصوت:', error);
+            this.showMessage('تعذر تشغيل التلاوة. يرجى المحاولة لاحقاً.', 'error');
+        }
+    }
+
+    async playCurrentPageAudio() {
+        const surah = getSurahByPage(this.currentPage);
+        if (surah) {
+            await this.playSurahAudio(surah.number);
+        }
+    }
+
+    showAudioPlayer() {
+        this.audioFloating.classList.add('show');
+    }
+
+    hideAudioPlayer() {
+        this.audioFloating.classList.remove('show');
+        this.stopAudio();
+    }
+
+    onAudioPlay() {
+        this.isPlaying = true;
+        this.audioBtn.classList.add('playing');
+        this.audioBtn.innerHTML = '<i class="fas fa-stop"></i>';
+        this.audioBtn.title = 'إيقاف التلاوة';
+    }
+
+    onAudioPause() {
+        this.audioBtn.classList.remove('playing');
+        this.audioBtn.innerHTML = '<i class="fas fa-play"></i>';
+        this.audioBtn.title = 'تشغيل التلاوة';
+    }
+
+    onAudioEnded() {
+        if (this.autoPlayNext && this.currentAudioSurah) {
+            this.playNextSurah();
+        } else {
+            this.stopAudio();
+        }
+    }
+
+    async playNextSurah() {
+        const nextSurahNumber = this.currentAudioSurah + 1;
+
+        if (nextSurahNumber <= 114) {
+            const nextSurah = this.surahsData.find(s => s.number === nextSurahNumber);
+            if (nextSurah) {
+                this.currentPage = nextSurah.start_page;
+                this.updatePage();
+                await this.playSurahAudio(nextSurahNumber);
+            }
+        } else {
+            this.stopAudio();
+            this.showMessage('تم الانتهاء من القرآن الكريم', 'success');
+        }
+    }
+
+    stopAudio() {
+        this.audioPlayer.pause();
+        this.audioPlayer.currentTime = 0;
+        this.isPlaying = false;
+        this.audioBtn.classList.remove('playing');
+        this.audioBtn.innerHTML = '<i class="fas fa-play"></i>';
+        this.audioBtn.title = 'تشغيل التلاوة';
+    }
+
     async performSearch() {
-        const query = (this.searchInput && this.searchInput.value) ? this.searchInput.value.trim() : '';
+        const query = this.searchInput.value.trim();
         if (!query) {
             this.showMessage('الرجاء إدخال نص للبحث', 'warning');
             return;
@@ -814,19 +756,19 @@ class QuranReader {
         try {
             const results = await this.searchInQuran(query);
             this.displaySearchResults(results);
-        } catch (err) {
-            console.error('خطأ في البحث:', err);
+        } catch (error) {
+            console.error('خطأ في البحث:', error);
             this.showMessage('حدث خطأ أثناء البحث', 'error');
         }
     }
 
     async searchInQuran(query) {
         const results = [];
-        const q = query.toLowerCase();
+        const lowerQuery = query.toLowerCase();
 
-        // البحث في أسماء السور (دائمًا متاح)
         this.surahsData.forEach(surah => {
-            if (surah.name.ar.includes(query) || surah.name.en.toLowerCase().includes(q)) {
+            if (surah.name.ar.includes(query) || 
+                surah.name.en.toLowerCase().includes(lowerQuery)) {
                 results.push({
                     type: 'surah',
                     surah: surah.number,
@@ -836,76 +778,35 @@ class QuranReader {
             }
         });
 
-        // إذا النص متوفر، نبحث داخل الآيات (نبحث النص العثماني)
-        if (this.quranText) {
-            this.quranText.forEach(surah => {
-                // البحث داخل نص الآيات (text)
-                surah.ayahs.forEach(ay => {
-                    if (ay.text && ay.text.toLowerCase().includes(q)) {
-                        // نعرض مقتطفًا قصيرًا
-                        const snippet = ay.text.length > 120 ? ay.text.slice(0, 120) + '...' : ay.text;
-                        results.push({
-                            type: 'ayah',
-                            surah: surah.number,
-                            ayah: ay.numberInSurah,
-                            text: `سورة ${surah.name} - (${ay.numberInSurah}) ${snippet}`,
-                            page: this.findPageForAyahGlobalNumber(ay.number) // قد تكون تقريبية
-                        });
-                    }
-                });
-            });
-        }
-
-        return results.slice(0, 40);
-    }
-
-    // تقريب: العثور على الصفحة التقريبية للآية العالمية (global ayah number)
-    findPageForAyahGlobalNumber(globalNumber) {
-        // لا نملك خارطة دقيقة globalAyah->page هنا، لذا نستخدم البحث عن السورة ثم start_page
-        if (!this.quranText) return 1;
-        for (const surah of this.quranText) {
-            if (surah.ayahs.some(a => a.number === globalNumber)) {
-                // نعطي start_page كسمة تقريبية
-                const meta = EMBEDDED_SURAHS_DATA.find(s => s.number === surah.number);
-                return meta ? meta.start_page : 1;
-            }
-        }
-        return 1;
+        return results.slice(0, 20);
     }
 
     displaySearchResults(results) {
-        if (!this.searchResults) return;
         if (results.length === 0) {
             this.searchResults.innerHTML = '<div class="search-result-item">لم يتم العثور على نتائج</div>';
-            this.searchResults.style.display = 'block';
-            return;
+        } else {
+            this.searchResults.innerHTML = results.map(result => `
+                <div class="search-result-item" data-page="${result.page}">
+                    ${result.text}
+                </div>
+            `).join('');
         }
-
-        this.searchResults.innerHTML = results.map(r => {
-            if (r.type === 'surah') {
-                return `<div class="search-result-item" data-page="${r.page}" data-type="surah">${r.text}</div>`;
-            } else {
-                return `<div class="search-result-item" data-page="${r.page}" data-type="ayah">${r.text}</div>`;
-            }
-        }).join('');
 
         this.searchResults.querySelectorAll('.search-result-item').forEach(item => {
             item.addEventListener('click', () => {
-                const page = parseInt(item.dataset.page) || 1;
+                const page = parseInt(item.dataset.page);
                 this.goToPage(page);
                 this.searchResults.style.display = 'none';
-                if (this.searchInput) this.searchInput.value = '';
+                this.searchInput.value = '';
             });
         });
 
         this.searchResults.style.display = 'block';
     }
 
-    // ========================================
-    // قوائم السور و الأجزاء و آيات السجود
-    // ========================================
     showSurahList() {
         if (!this.surahsData) return;
+
         const surahListHTML = this.surahsData.map(surah => `
             <div class="surah-item" data-page="${surah.start_page}">
                 <div class="surah-number">${surah.number}</div>
@@ -917,19 +818,19 @@ class QuranReader {
             </div>
         `).join('');
 
-        const listContent = this.surahModal ? this.surahModal.querySelector('#surah-list-content') : null;
-        if (listContent) listContent.innerHTML = surahListHTML;
-        if (this.surahModal) this.surahModal.style.display = 'flex';
-
-        if (this.surahModal) {
-            this.surahModal.querySelectorAll('.surah-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const page = parseInt(item.dataset.page);
-                    this.goToPage(page);
-                    this.surahModal.style.display = 'none';
-                });
-            });
+        const listContent = this.surahModal.querySelector('#surah-list-content');
+        if (listContent) {
+            listContent.innerHTML = surahListHTML;
         }
+        this.surahModal.style.display = 'flex';
+
+        this.surahModal.querySelectorAll('.surah-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = parseInt(item.dataset.page);
+                this.goToPage(page);
+                this.surahModal.style.display = 'none';
+            });
+        });
     }
 
     showJuzList() {
@@ -944,19 +845,19 @@ class QuranReader {
             `;
         }).join('');
 
-        const listContent = this.juzModal ? this.juzModal.querySelector('#juz-list-content') : null;
-        if (listContent) listContent.innerHTML = juzListHTML;
-        if (this.juzModal) this.juzModal.style.display = 'flex';
-
-        if (this.juzModal) {
-            this.juzModal.querySelectorAll('.juz-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const page = parseInt(item.dataset.page);
-                    this.goToPage(page);
-                    this.juzModal.style.display = 'none';
-                });
-            });
+        const listContent = this.juzModal.querySelector('#juz-list-content');
+        if (listContent) {
+            listContent.innerHTML = juzListHTML;
         }
+        this.juzModal.style.display = 'flex';
+
+        this.juzModal.querySelectorAll('.juz-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = parseInt(item.dataset.page);
+                this.goToPage(page);
+                this.juzModal.style.display = 'none';
+            });
+        });
     }
 
     showSajdaInfo() {
@@ -1000,7 +901,10 @@ class QuranReader {
 
         document.body.appendChild(modal);
 
-        modal.querySelector('.close').addEventListener('click', () => modal.remove());
+        modal.querySelector('.close').addEventListener('click', () => {
+            modal.remove();
+        });
+
         modal.querySelectorAll('.sajda-item').forEach(item => {
             item.addEventListener('click', () => {
                 const page = parseInt(item.dataset.page);
@@ -1010,37 +914,12 @@ class QuranReader {
         });
 
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+            if (e.target === modal) {
+                modal.remove();
+            }
         });
     }
 
-    // ========================================
-    // تنقّل الصفحات
-    // ========================================
-    previousPage() {
-        if (this.currentPage > 1) {
-            this.currentPage--;
-            this.updatePage();
-        }
-    }
-
-    nextPage() {
-        if (this.currentPage < this.totalPages) {
-            this.currentPage++;
-            this.updatePage();
-        }
-    }
-
-    goToPage(pageNum) {
-        if (pageNum >= 1 && pageNum <= this.totalPages) {
-            this.currentPage = pageNum;
-            this.updatePage();
-        }
-    }
-
-    // ========================================
-    // عناصر واجهة مساعدة: رسالة، إشعار، زر للصعود
-    // ========================================
     showMessage(message, type = 'info') {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
@@ -1048,41 +927,36 @@ class QuranReader {
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 12px 20px;
+            padding: 15px 25px;
             background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : type === 'warning' ? '#e67e22' : '#2e86ab'};
             color: white;
-            border-radius: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             z-index: 10000;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 500;
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-20px);
             transition: all 0.3s ease;
         `;
         messageDiv.textContent = message;
+
         document.body.appendChild(messageDiv);
 
         setTimeout(() => {
             messageDiv.style.opacity = '1';
             messageDiv.style.transform = 'translateY(0)';
-        }, 80);
+        }, 100);
 
         setTimeout(() => {
             messageDiv.style.opacity = '0';
-            messageDiv.style.transform = 'translateY(-10px)';
+            messageDiv.style.transform = 'translateY(-20px)';
             setTimeout(() => {
-                if (messageDiv.parentNode) messageDiv.parentNode.removeChild(messageDiv);
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
             }, 300);
         }, 3000);
-    }
-
-    toggleScrollTopButton() {
-        if (!this.scrollTopBtn) return;
-        if (window.pageYOffset > 300) {
-            this.scrollTopBtn.classList.add('show');
-        } else {
-            this.scrollTopBtn.classList.remove('show');
-        }
     }
 }
 
@@ -1091,5 +965,5 @@ class QuranReader {
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
     new QuranReader();
-    console.log('✅ تم تشغيل GT-QURANREADER (نص/صورة) بنجاح');
+    console.log('✅ تم تشغيل GT-QURANREADER بنجاح');
 });
