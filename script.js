@@ -1,255 +1,163 @@
-// بيانات الصفحات المدمجة
-const EMBEDDED_PAGES_DATA = [
-    {
-        "page": 1,
-        "start": {
-            "surah_number": 1,
-            "name": {"ar": "الفاتحة"},
-            "juz": 1
-        },
-        "end": {
-            "surah_number": 1,
-            "name": {"ar": "الفاتحة"}
-        }
-    },
-    {
-        "page": 2,
-        "start": {
-            "surah_number": 2,
-            "name": {"ar": "البقرة"},
-            "juz": 1
-        },
-        "end": {
-            "surah_number": 2,
-            "name": {"ar": "البقرة"}
-        }
-    },
-    {
-        "page": 604,
-        "start": {
-            "surah_number": 114,
-            "name": {"ar": "الناس"},
-            "juz": 30
-        },
-        "end": {
-            "surah_number": 114,
-            "name": {"ar": "الناس"}
-        }
-    }
-];
+// script.js - النسخة المصححة والكاملة
+// GT-QURANREADER-WEB v4.0
 
-// بيانات السور المدمجة
+// ========================================
+// بيانات السور الكاملة (114 سورة)
+// ========================================
 const EMBEDDED_SURAHS_DATA = [
-    {
-        "number": 1,
-        "name": {
-            "ar": "الفاتحة",
-            "en": "Al-Fatiha",
-            "transliteration": "Al-Fatihah"
-        },
-        "verses_count": 7,
-        "revelation_place": {"ar": "مكية"},
-        "verses": [
-            {
-                "number": 1,
-                "text": {"ar": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"},
-                "page": 1,
-                "sajda": false
-            },
-            {
-                "number": 2,
-                "text": {"ar": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ"},
-                "page": 1,
-                "sajda": false
-            },
-            {
-                "number": 3,
-                "text": {"ar": "الرَّحْمَٰنِ الرَّحِيمِ"},
-                "page": 1,
-                "sajda": false
-            },
-            {
-                "number": 4,
-                "text": {"ar": "مَالِكِ يَوْمِ الدِّينِ"},
-                "page": 1,
-                "sajda": false
-            },
-            {
-                "number": 5,
-                "text": {"ar": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ"},
-                "page": 1,
-                "sajda": false
-            },
-            {
-                "number": 6,
-                "text": {"ar": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ"},
-                "page": 1,
-                "sajda": false
-            },
-            {
-                "number": 7,
-                "text": {"ar": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ"},
-                "page": 1,
-                "sajda": false
-            }
-        ]
-    },
-    {
-        "number": 2,
-        "name": {
-            "ar": "البقرة",
-            "en": "Al-Baqarah",
-            "transliteration": "Al-Baqarah"
-        },
-        "verses_count": 286,
-        "revelation_place": {"ar": "مدنية"},
-        "verses": [
-            {
-                "number": 1,
-                "text": {"ar": "الم"},
-                "page": 2,
-                "sajda": false
-            },
-            {
-                "number": 2,
-                "text": {"ar": "ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ"},
-                "page": 2,
-                "sajda": false
-            }
-        ]
-    },
-    {
-        "number": 112,
-        "name": {
-            "ar": "الإخلاص",
-            "en": "Al-Ikhlas",
-            "transliteration": "Al-Ikhlas"
-        },
-        "verses_count": 4,
-        "revelation_place": {"ar": "مكية"},
-        "verses": [
-            {
-                "number": 1,
-                "text": {"ar": "قُلْ هُوَ اللَّهُ أَحَدٌ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 2,
-                "text": {"ar": "اللَّهُ الصَّمَدُ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 3,
-                "text": {"ar": "لَمْ يَلِدْ وَلَمْ يُولَدْ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 4,
-                "text": {"ar": "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ"},
-                "page": 604,
-                "sajda": false
-            }
-        ]
-    },
-    {
-        "number": 113,
-        "name": {
-            "ar": "الفلق",
-            "en": "Al-Falaq",
-            "transliteration": "Al-Falaq"
-        },
-        "verses_count": 5,
-        "revelation_place": {"ar": "مكية"},
-        "verses": [
-            {
-                "number": 1,
-                "text": {"ar": "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 2,
-                "text": {"ar": "مِن شَرِّ مَا خَلَقَ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 3,
-                "text": {"ar": "وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 4,
-                "text": {"ar": "وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 5,
-                "text": {"ar": "وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ"},
-                "page": 604,
-                "sajda": false
-            }
-        ]
-    },
-    {
-        "number": 114,
-        "name": {
-            "ar": "الناس",
-            "en": "An-Nas",
-            "transliteration": "An-Nas"
-        },
-        "verses_count": 6,
-        "revelation_place": {"ar": "مكية"},
-        "verses": [
-            {
-                "number": 1,
-                "text": {"ar": "قُلْ أَعُوذُ بِرَبِّ النَّاسِ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 2,
-                "text": {"ar": "مَلِكِ النَّاسِ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 3,
-                "text": {"ar": "إِلَٰهِ النَّاسِ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 4,
-                "text": {"ar": "مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 5,
-                "text": {"ar": "الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ"},
-                "page": 604,
-                "sajda": false
-            },
-            {
-                "number": 6,
-                "text": {"ar": "مِنَ الْجِنَّةِ وَالنَّاسِ"},
-                "page": 604,
-                "sajda": false
-            }
-        ]
-    }
+    { number: 1, name: { ar: "الفاتحة", en: "Al-Fatiha" }, verses_count: 7, revelation_place: { ar: "مكية" }, start_page: 1 },
+    { number: 2, name: { ar: "البقرة", en: "Al-Baqarah" }, verses_count: 286, revelation_place: { ar: "مدنية" }, start_page: 2 },
+    { number: 3, name: { ar: "آل عمران", en: "Aal-E-Imran" }, verses_count: 200, revelation_place: { ar: "مدنية" }, start_page: 50 },
+    { number: 4, name: { ar: "النساء", en: "An-Nisa" }, verses_count: 176, revelation_place: { ar: "مدنية" }, start_page: 77 },
+    { number: 5, name: { ar: "المائدة", en: "Al-Maidah" }, verses_count: 120, revelation_place: { ar: "مدنية" }, start_page: 106 },
+    { number: 6, name: { ar: "الأنعام", en: "Al-Anaam" }, verses_count: 165, revelation_place: { ar: "مكية" }, start_page: 128 },
+    { number: 7, name: { ar: "الأعراف", en: "Al-Araf" }, verses_count: 206, revelation_place: { ar: "مكية" }, start_page: 151 },
+    { number: 8, name: { ar: "الأنفال", en: "Al-Anfal" }, verses_count: 75, revelation_place: { ar: "مدنية" }, start_page: 177 },
+    { number: 9, name: { ar: "التوبة", en: "At-Tawbah" }, verses_count: 129, revelation_place: { ar: "مدنية" }, start_page: 187 },
+    { number: 10, name: { ar: "يونس", en: "Yunus" }, verses_count: 109, revelation_place: { ar: "مكية" }, start_page: 208 },
+    { number: 11, name: { ar: "هود", en: "Hud" }, verses_count: 123, revelation_place: { ar: "مكية" }, start_page: 221 },
+    { number: 12, name: { ar: "يوسف", en: "Yusuf" }, verses_count: 111, revelation_place: { ar: "مكية" }, start_page: 235 },
+    { number: 13, name: { ar: "الرعد", en: "Ar-Rad" }, verses_count: 43, revelation_place: { ar: "مدنية" }, start_page: 249 },
+    { number: 14, name: { ar: "إبراهيم", en: "Ibrahim" }, verses_count: 52, revelation_place: { ar: "مكية" }, start_page: 255 },
+    { number: 15, name: { ar: "الحجر", en: "Al-Hijr" }, verses_count: 99, revelation_place: { ar: "مكية" }, start_page: 262 },
+    { number: 16, name: { ar: "النحل", en: "An-Nahl" }, verses_count: 128, revelation_place: { ar: "مكية" }, start_page: 267 },
+    { number: 17, name: { ar: "الإسراء", en: "Al-Isra" }, verses_count: 111, revelation_place: { ar: "مكية" }, start_page: 282 },
+    { number: 18, name: { ar: "الكهف", en: "Al-Kahf" }, verses_count: 110, revelation_place: { ar: "مكية" }, start_page: 293 },
+    { number: 19, name: { ar: "مريم", en: "Maryam" }, verses_count: 98, revelation_place: { ar: "مكية" }, start_page: 305 },
+    { number: 20, name: { ar: "طه", en: "Taha" }, verses_count: 135, revelation_place: { ar: "مكية" }, start_page: 312 },
+    { number: 21, name: { ar: "الأنبياء", en: "Al-Anbiya" }, verses_count: 112, revelation_place: { ar: "مكية" }, start_page: 322 },
+    { number: 22, name: { ar: "الحج", en: "Al-Hajj" }, verses_count: 78, revelation_place: { ar: "مدنية" }, start_page: 332 },
+    { number: 23, name: { ar: "المؤمنون", en: "Al-Muminun" }, verses_count: 118, revelation_place: { ar: "مكية" }, start_page: 342 },
+    { number: 24, name: { ar: "النور", en: "An-Nur" }, verses_count: 64, revelation_place: { ar: "مدنية" }, start_page: 350 },
+    { number: 25, name: { ar: "الفرقان", en: "Al-Furqan" }, verses_count: 77, revelation_place: { ar: "مكية" }, start_page: 359 },
+    { number: 26, name: { ar: "الشعراء", en: "Ash-Shuara" }, verses_count: 227, revelation_place: { ar: "مكية" }, start_page: 367 },
+    { number: 27, name: { ar: "النمل", en: "An-Naml" }, verses_count: 93, revelation_place: { ar: "مكية" }, start_page: 377 },
+    { number: 28, name: { ar: "القصص", en: "Al-Qasas" }, verses_count: 88, revelation_place: { ar: "مكية" }, start_page: 385 },
+    { number: 29, name: { ar: "العنكبوت", en: "Al-Ankabut" }, verses_count: 69, revelation_place: { ar: "مكية" }, start_page: 396 },
+    { number: 30, name: { ar: "الروم", en: "Ar-Rum" }, verses_count: 60, revelation_place: { ar: "مكية" }, start_page: 404 },
+    { number: 31, name: { ar: "لقمان", en: "Luqman" }, verses_count: 34, revelation_place: { ar: "مكية" }, start_page: 411 },
+    { number: 32, name: { ar: "السجدة", en: "As-Sajdah" }, verses_count: 30, revelation_place: { ar: "مكية" }, start_page: 415 },
+    { number: 33, name: { ar: "الأحزاب", en: "Al-Ahzab" }, verses_count: 73, revelation_place: { ar: "مدنية" }, start_page: 418 },
+    { number: 34, name: { ar: "سبأ", en: "Saba" }, verses_count: 54, revelation_place: { ar: "مكية" }, start_page: 428 },
+    { number: 35, name: { ar: "فاطر", en: "Fatir" }, verses_count: 45, revelation_place: { ar: "مكية" }, start_page: 434 },
+    { number: 36, name: { ar: "يس", en: "Ya-Sin" }, verses_count: 83, revelation_place: { ar: "مكية" }, start_page: 440 },
+    { number: 37, name: { ar: "الصافات", en: "As-Saffat" }, verses_count: 182, revelation_place: { ar: "مكية" }, start_page: 446 },
+    { number: 38, name: { ar: "ص", en: "Sad" }, verses_count: 88, revelation_place: { ar: "مكية" }, start_page: 453 },
+    { number: 39, name: { ar: "الزمر", en: "Az-Zumar" }, verses_count: 75, revelation_place: { ar: "مكية" }, start_page: 458 },
+    { number: 40, name: { ar: "غافر", en: "Ghafir" }, verses_count: 85, revelation_place: { ar: "مكية" }, start_page: 467 },
+    { number: 41, name: { ar: "فصلت", en: "Fussilat" }, verses_count: 54, revelation_place: { ar: "مكية" }, start_page: 477 },
+    { number: 42, name: { ar: "الشورى", en: "Ash-Shura" }, verses_count: 53, revelation_place: { ar: "مكية" }, start_page: 483 },
+    { number: 43, name: { ar: "الزخرف", en: "Az-Zukhruf" }, verses_count: 89, revelation_place: { ar: "مكية" }, start_page: 489 },
+    { number: 44, name: { ar: "الدخان", en: "Ad-Dukhan" }, verses_count: 59, revelation_place: { ar: "مكية" }, start_page: 496 },
+    { number: 45, name: { ar: "الجاثية", en: "Al-Jathiyah" }, verses_count: 37, revelation_place: { ar: "مكية" }, start_page: 499 },
+    { number: 46, name: { ar: "الأحقاف", en: "Al-Ahqaf" }, verses_count: 35, revelation_place: { ar: "مكية" }, start_page: 502 },
+    { number: 47, name: { ar: "محمد", en: "Muhammad" }, verses_count: 38, revelation_place: { ar: "مدنية" }, start_page: 507 },
+    { number: 48, name: { ar: "الفتح", en: "Al-Fath" }, verses_count: 29, revelation_place: { ar: "مدنية" }, start_page: 511 },
+    { number: 49, name: { ar: "الحجرات", en: "Al-Hujurat" }, verses_count: 18, revelation_place: { ar: "مدنية" }, start_page: 515 },
+    { number: 50, name: { ar: "ق", en: "Qaf" }, verses_count: 45, revelation_place: { ar: "مكية" }, start_page: 518 },
+    { number: 51, name: { ar: "الذاريات", en: "Adh-Dhariyat" }, verses_count: 60, revelation_place: { ar: "مكية" }, start_page: 520 },
+    { number: 52, name: { ar: "الطور", en: "At-Tur" }, verses_count: 49, revelation_place: { ar: "مكية" }, start_page: 523 },
+    { number: 53, name: { ar: "النجم", en: "An-Najm" }, verses_count: 62, revelation_place: { ar: "مكية" }, start_page: 526 },
+    { number: 54, name: { ar: "القمر", en: "Al-Qamar" }, verses_count: 55, revelation_place: { ar: "مكية" }, start_page: 528 },
+    { number: 55, name: { ar: "الرحمن", en: "Ar-Rahman" }, verses_count: 78, revelation_place: { ar: "مدنية" }, start_page: 531 },
+    { number: 56, name: { ar: "الواقعة", en: "Al-Waqiah" }, verses_count: 96, revelation_place: { ar: "مكية" }, start_page: 534 },
+    { number: 57, name: { ar: "الحديد", en: "Al-Hadid" }, verses_count: 29, revelation_place: { ar: "مدنية" }, start_page: 537 },
+    { number: 58, name: { ar: "المجادلة", en: "Al-Mujadila" }, verses_count: 22, revelation_place: { ar: "مدنية" }, start_page: 542 },
+    { number: 59, name: { ar: "الحشر", en: "Al-Hashr" }, verses_count: 24, revelation_place: { ar: "مدنية" }, start_page: 545 },
+    { number: 60, name: { ar: "الممتحنة", en: "Al-Mumtahanah" }, verses_count: 13, revelation_place: { ar: "مدنية" }, start_page: 549 },
+    { number: 61, name: { ar: "الصف", en: "As-Saff" }, verses_count: 14, revelation_place: { ar: "مدنية" }, start_page: 551 },
+    { number: 62, name: { ar: "الجمعة", en: "Al-Jumuah" }, verses_count: 11, revelation_place: { ar: "مدنية" }, start_page: 553 },
+    { number: 63, name: { ar: "المنافقون", en: "Al-Munafiqun" }, verses_count: 11, revelation_place: { ar: "مدنية" }, start_page: 554 },
+    { number: 64, name: { ar: "التغابن", en: "At-Taghabun" }, verses_count: 18, revelation_place: { ar: "مدنية" }, start_page: 556 },
+    { number: 65, name: { ar: "الطلاق", en: "At-Talaq" }, verses_count: 12, revelation_place: { ar: "مدنية" }, start_page: 558 },
+    { number: 66, name: { ar: "التحريم", en: "At-Tahrim" }, verses_count: 12, revelation_place: { ar: "مدنية" }, start_page: 560 },
+    { number: 67, name: { ar: "الملك", en: "Al-Mulk" }, verses_count: 30, revelation_place: { ar: "مكية" }, start_page: 562 },
+    { number: 68, name: { ar: "القلم", en: "Al-Qalam" }, verses_count: 52, revelation_place: { ar: "مكية" }, start_page: 564 },
+    { number: 69, name: { ar: "الحاقة", en: "Al-Haqqah" }, verses_count: 52, revelation_place: { ar: "مكية" }, start_page: 566 },
+    { number: 70, name: { ar: "المعارج", en: "Al-Maarij" }, verses_count: 44, revelation_place: { ar: "مكية" }, start_page: 568 },
+    { number: 71, name: { ar: "نوح", en: "Nuh" }, verses_count: 28, revelation_place: { ar: "مكية" }, start_page: 570 },
+    { number: 72, name: { ar: "الجن", en: "Al-Jinn" }, verses_count: 28, revelation_place: { ar: "مكية" }, start_page: 572 },
+    { number: 73, name: { ar: "المزمل", en: "Al-Muzzammil" }, verses_count: 20, revelation_place: { ar: "مكية" }, start_page: 574 },
+    { number: 74, name: { ar: "المدثر", en: "Al-Muddathir" }, verses_count: 56, revelation_place: { ar: "مكية" }, start_page: 575 },
+    { number: 75, name: { ar: "القيامة", en: "Al-Qiyamah" }, verses_count: 40, revelation_place: { ar: "مكية" }, start_page: 577 },
+    { number: 76, name: { ar: "الإنسان", en: "Al-Insan" }, verses_count: 31, revelation_place: { ar: "مدنية" }, start_page: 578 },
+    { number: 77, name: { ar: "المرسلات", en: "Al-Mursalat" }, verses_count: 50, revelation_place: { ar: "مكية" }, start_page: 580 },
+    { number: 78, name: { ar: "النبأ", en: "An-Naba" }, verses_count: 40, revelation_place: { ar: "مكية" }, start_page: 582 },
+    { number: 79, name: { ar: "النازعات", en: "An-Naziat" }, verses_count: 46, revelation_place: { ar: "مكية" }, start_page: 583 },
+    { number: 80, name: { ar: "عبس", en: "Abasa" }, verses_count: 42, revelation_place: { ar: "مكية" }, start_page: 585 },
+    { number: 81, name: { ar: "التكوير", en: "At-Takwir" }, verses_count: 29, revelation_place: { ar: "مكية" }, start_page: 586 },
+    { number: 82, name: { ar: "الانفطار", en: "Al-Infitar" }, verses_count: 19, revelation_place: { ar: "مكية" }, start_page: 587 },
+    { number: 83, name: { ar: "المطففين", en: "Al-Mutaffifin" }, verses_count: 36, revelation_place: { ar: "مكية" }, start_page: 587 },
+    { number: 84, name: { ar: "الانشقاق", en: "Al-Inshiqaq" }, verses_count: 25, revelation_place: { ar: "مكية" }, start_page: 589 },
+    { number: 85, name: { ar: "البروج", en: "Al-Buruj" }, verses_count: 22, revelation_place: { ar: "مكية" }, start_page: 590 },
+    { number: 86, name: { ar: "الطارق", en: "At-Tariq" }, verses_count: 17, revelation_place: { ar: "مكية" }, start_page: 591 },
+    { number: 87, name: { ar: "الأعلى", en: "Al-Ala" }, verses_count: 19, revelation_place: { ar: "مكية" }, start_page: 591 },
+    { number: 88, name: { ar: "الغاشية", en: "Al-Ghashiyah" }, verses_count: 26, revelation_place: { ar: "مكية" }, start_page: 592 },
+    { number: 89, name: { ar: "الفجر", en: "Al-Fajr" }, verses_count: 30, revelation_place: { ar: "مكية" }, start_page: 593 },
+    { number: 90, name: { ar: "البلد", en: "Al-Balad" }, verses_count: 20, revelation_place: { ar: "مكية" }, start_page: 594 },
+    { number: 91, name: { ar: "الشمس", en: "Ash-Shams" }, verses_count: 15, revelation_place: { ar: "مكية" }, start_page: 595 },
+    { number: 92, name: { ar: "الليل", en: "Al-Layl" }, verses_count: 21, revelation_place: { ar: "مكية" }, start_page: 595 },
+    { number: 93, name: { ar: "الضحى", en: "Ad-Dhuha" }, verses_count: 11, revelation_place: { ar: "مكية" }, start_page: 596 },
+    { number: 94, name: { ar: "الشرح", en: "Ash-Sharh" }, verses_count: 8, revelation_place: { ar: "مكية" }, start_page: 596 },
+    { number: 95, name: { ar: "التين", en: "At-Tin" }, verses_count: 8, revelation_place: { ar: "مكية" }, start_page: 597 },
+    { number: 96, name: { ar: "العلق", en: "Al-Alaq" }, verses_count: 19, revelation_place: { ar: "مكية" }, start_page: 597 },
+    { number: 97, name: { ar: "القدر", en: "Al-Qadr" }, verses_count: 5, revelation_place: { ar: "مكية" }, start_page: 598 },
+    { number: 98, name: { ar: "البينة", en: "Al-Bayyinah" }, verses_count: 8, revelation_place: { ar: "مدنية" }, start_page: 598 },
+    { number: 99, name: { ar: "الزلزلة", en: "Az-Zalzalah" }, verses_count: 8, revelation_place: { ar: "مدنية" }, start_page: 599 },
+    { number: 100, name: { ar: "العاديات", en: "Al-Adiyat" }, verses_count: 11, revelation_place: { ar: "مكية" }, start_page: 599 },
+    { number: 101, name: { ar: "القارعة", en: "Al-Qariah" }, verses_count: 11, revelation_place: { ar: "مكية" }, start_page: 600 },
+    { number: 102, name: { ar: "التكاثر", en: "At-Takathur" }, verses_count: 8, revelation_place: { ar: "مكية" }, start_page: 600 },
+    { number: 103, name: { ar: "العصر", en: "Al-Asr" }, verses_count: 3, revelation_place: { ar: "مكية" }, start_page: 601 },
+    { number: 104, name: { ar: "الهمزة", en: "Al-Humazah" }, verses_count: 9, revelation_place: { ar: "مكية" }, start_page: 601 },
+    { number: 105, name: { ar: "الفيل", en: "Al-Fil" }, verses_count: 5, revelation_place: { ar: "مكية" }, start_page: 602 },
+    { number: 106, name: { ar: "قريش", en: "Quraysh" }, verses_count: 4, revelation_place: { ar: "مكية" }, start_page: 602 },
+    { number: 107, name: { ar: "الماعون", en: "Al-Maun" }, verses_count: 7, revelation_place: { ar: "مكية" }, start_page: 603 },
+    { number: 108, name: { ar: "الكوثر", en: "Al-Kawthar" }, verses_count: 3, revelation_place: { ar: "مكية" }, start_page: 603 },
+    { number: 109, name: { ar: "الكافرون", en: "Al-Kafirun" }, verses_count: 6, revelation_place: { ar: "مكية" }, start_page: 603 },
+    { number: 110, name: { ar: "النصر", en: "An-Nasr" }, verses_count: 3, revelation_place: { ar: "مدنية" }, start_page: 604 },
+    { number: 111, name: { ar: "المسد", en: "Al-Masad" }, verses_count: 5, revelation_place: { ar: "مكية" }, start_page: 604 },
+    { number: 112, name: { ar: "الإخلاص", en: "Al-Ikhlas" }, verses_count: 4, revelation_place: { ar: "مكية" }, start_page: 604 },
+    { number: 113, name: { ar: "الفلق", en: "Al-Falaq" }, verses_count: 5, revelation_place: { ar: "مكية" }, start_page: 604 },
+    { number: 114, name: { ar: "الناس", en: "An-Nas" }, verses_count: 6, revelation_place: { ar: "مكية" }, start_page: 604 }
 ];
 
+// ========================================
+// توليد بيانات الصفحات (604 صفحة)
+// ========================================
+function generatePagesData() {
+    const pages = [];
+    
+    for (let page = 1; page <= 604; page++) {
+        const surah = getSurahByPage(page);
+        const juz = calculateJuzFromPage(page);
+        
+        pages.push({
+            page: page,
+            start: {
+                surah_number: surah.number,
+                name: { ar: surah.name.ar },
+                juz: juz
+            },
+            end: {
+                surah_number: surah.number,
+                name: { ar: surah.name.ar }
+            }
+        });
+    }
+    
+    return pages;
+}
+
+// ========================================
+// مدير البيانات
+// ========================================
 class QuranDataManager {
     constructor() {
         this.baseURL = 'https://api.alquran.cloud/v1';
+        this.fallbackImageURL = 'https://everyayah.com/data/images_png/';
         this.cache = new Map();
+        this.pagesData = generatePagesData();
+        this.surahsData = EMBEDDED_SURAHS_DATA;
     }
 
     async loadData(type, params = {}) {
@@ -260,232 +168,105 @@ class QuranDataManager {
         }
 
         try {
+            let data;
             switch(type) {
                 case 'pages':
-                    return await this.loadPagesData();
+                    data = this.pagesData;
+                    break;
                 case 'surahs':
-                    return await this.loadSurahsData();
-                case 'quran_text':
-                    return await this.loadQuranText();
+                    data = this.surahsData;
+                    break;
                 case 'audio':
-                    return await this.loadAudioData(params.surah);
+                    data = await this.loadAudioData(params.surah);
+                    break;
                 default:
                     throw new Error(`نوع غير معروف: ${type}`);
             }
+            
+            this.cache.set(cacheKey, data);
+            return data;
         } catch (error) {
             console.error(`❌ فشل تحميل ${type}:`, error);
             return this.getEmbeddedData(type);
         }
     }
 
-    async loadPagesData() {
-        // استخدام API لتحميل بيانات الصفحات
-        try {
-            const response = await fetch(`${this.baseURL}/meta`);
-            const data = await response.json();
-            
-            if (data.code === 200) {
-                return this.formatPagesData(data.data);
-            }
-        } catch (error) {
-            console.log('🔄 استخدام بيانات الصفحات المدمجة');
-        }
-        
-        return this.generatePagesData();
-    }
-
-    async loadSurahsData() {
-        try {
-            const response = await fetch(`${this.baseURL}/surah`);
-            const data = await response.json();
-            
-            if (data.code === 200) {
-                return data.data;
-            }
-        } catch (error) {
-            console.log('🔄 استخدام بيانات السور المدمجة');
-        }
-        
-        return EMBEDDED_SURAHS_DATA;
-    }
-
-    async loadQuranText() {
-        try {
-            // تحميل القرآن كامل بنص عثماني
-            const response = await fetch(`${this.baseURL}/quran/quran-uthmani`);
-            const data = await response.json();
-            
-            if (data.code === 200) {
-                return data.data;
-            }
-        } catch (error) {
-            console.log('❌ فشل تحميل نص القرآن');
-        }
-        return null;
-    }
-
     async loadAudioData(surahNumber) {
         try {
-            // تحميل معلومات السورة الصوتية
+            // محاولة تحميل من API
             const response = await fetch(`${this.baseURL}/surah/${surahNumber}/ar.alafasy`);
             const data = await response.json();
             
-            if (data.code === 200) {
-                return this.formatAudioData(data.data);
+            if (data.code === 200 && data.data.ayahs && data.data.ayahs.length > 0) {
+                return [{
+                    link: data.data.ayahs[0].audio || this.getFallbackAudioUrl(surahNumber),
+                    name: 'مشاري العفاسي'
+                }];
             }
         } catch (error) {
-            console.log('🔄 استخدام رابط صوتي مباشر');
+            console.log('📻 استخدام رابط صوتي مباشر');
         }
         
         // رابط بديل مباشر
         return [{
-            link: `https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/${surahNumber.toString().padStart(3, '0')}.mp3`,
+            link: this.getFallbackAudioUrl(surahNumber),
             name: 'عبد الباسط عبد الصمد'
         }];
     }
 
-    formatPagesData(metaData) {
-        // توليد بيانات الصفحات من البيانات الوصفية
-        const pages = [];
-        for (let page = 1; page <= 604; page++) {
-            pages.push({
-                page: page,
-                start: {
-                    surah_number: this.calculateSurahFromPage(page),
-                    name: { ar: this.getSurahName(this.calculateSurahFromPage(page)) },
-                    juz: Math.ceil(page / 20)
-                },
-                end: {
-                    surah_number: this.calculateSurahFromPage(page),
-                    name: { ar: this.getSurahName(this.calculateSurahFromPage(page)) }
-                }
-            });
-        }
-        return pages;
-    }
-
-    formatAudioData(surahData) {
-        if (surahData.ayahs && surahData.ayahs.length > 0) {
-            return surahData.ayahs.map(ayah => ({
-                link: ayah.audio,
-                name: 'مشاري العفاسي'
-            }));
-        }
-        return [];
-    }
-
     getPageImageUrl(page) {
-        // استخدام مصادر متعددة للصور
-        return `https://everyayah.com/data/images_png/${page}.png`;
+        const pageStr = page.toString().padStart(3, '0');
+        return `${this.fallbackImageURL}${page}.png`;
     }
 
-    getSurahAudioUrl(surahNumber) {
-        // رابط صوتي مباشر من المصدر
-        return `https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`;
-    }
-
-    // الدوال المساعدة
-    calculateSurahFromPage(page) {
-        const surahPages = {
-            1: 1, 2: 2, 50: 3, 77: 4, 106: 5, 128: 6, 151: 7, 177: 8,
-            187: 9, 208: 10, 221: 11, 235: 12, 249: 13, 255: 14, 262: 15,
-            267: 16, 282: 17, 293: 18, 305: 19, 312: 20, 322: 21, 332: 22,
-            342: 23, 350: 24, 359: 25, 367: 26, 377: 27, 385: 28, 396: 29,
-            404: 30, 411: 31, 415: 32, 418: 33, 428: 34, 434: 35, 440: 36,
-            446: 37, 453: 38, 458: 39, 467: 40, 477: 41, 483: 42, 489: 43,
-            496: 44, 499: 45, 502: 46, 507: 47, 511: 48, 515: 49, 518: 50,
-            520: 51, 523: 52, 526: 53, 528: 54, 531: 55, 534: 56, 537: 57,
-            542: 58, 545: 59, 549: 60, 551: 61, 553: 62, 554: 63, 556: 64,
-            558: 65, 560: 66, 562: 67, 564: 68, 566: 69, 568: 70, 570: 71,
-            572: 72, 574: 73, 575: 74, 577: 75, 578: 76, 580: 77, 582: 78,
-            583: 79, 585: 80, 586: 81, 587: 82, 587: 83, 589: 84, 590: 85,
-            591: 86, 591: 87, 592: 88, 593: 89, 594: 90, 595: 91, 595: 92,
-            596: 93, 596: 94, 597: 95, 597: 96, 598: 97, 598: 98, 599: 99,
-            599: 100, 600: 101, 600: 102, 601: 103, 601: 104, 602: 105,
-            602: 106, 603: 107, 603: 108, 603: 109, 604: 110, 604: 111,
-            604: 112, 604: 113, 604: 114
-        };
-        
-        for (let startPage in surahPages) {
-            if (page >= startPage) {
-                return surahPages[startPage];
-            }
-        }
-        return 1;
-    }
-
-    getSurahName(surahNumber) {
-        const surahNames = {
-            1: "الفاتحة", 2: "البقرة", 3: "آل عمران", 4: "النساء", 5: "المائدة",
-            6: "الأنعام", 7: "الأعراف", 8: "الأنفال", 9: "التوبة", 10: "يونس",
-            11: "هود", 12: "يوسف", 13: "الرعد", 14: "إبراهيم", 15: "الحجر",
-            16: "النحل", 17: "الإسراء", 18: "الكهف", 19: "مريم", 20: "طه",
-            21: "الأنبياء", 22: "الحج", 23: "المؤمنون", 24: "النور", 25: "الفرقان",
-            26: "الشعراء", 27: "النمل", 28: "القصص", 29: "العنكبوت", 30: "الروم",
-            31: "لقمان", 32: "السجدة", 33: "الأحزاب", 34: "سبأ", 35: "فاطر",
-            36: "يس", 37: "الصافات", 38: "ص", 39: "الزمر", 40: "غافر",
-            41: "فصلت", 42: "الشورى", 43: "الزخرف", 44: "الدخان", 45: "الجاثية",
-            46: "الأحقاف", 47: "محمد", 48: "الفتح", 49: "الحجرات", 50: "ق",
-            51: "الذاريات", 52: "الطور", 53: "النجم", 54: "القمر", 55: "الرحمن",
-            56: "الواقعة", 57: "الحديد", 58: "المجادلة", 59: "الحشر", 60: "الممتحنة",
-            61: "الصف", 62: "الجمعة", 63: "المنافقون", 64: "التغابن", 65: "الطلاق",
-            66: "التحريم", 67: "الملك", 68: "القلم", 69: "الحاقة", 70: "المعارج",
-            71: "نوح", 72: "الجن", 73: "المزمل", 74: "المدثر", 75: "القيامة",
-            76: "الإنسان", 77: "المرسلات", 78: "النبأ", 79: "النازعات", 80: "عبس",
-            81: "التكوير", 82: "الانفطار", 83: "المطففين", 84: "الانشقاق", 85: "البروج",
-            86: "الطارق", 87: "الأعلى", 88: "الغاشية", 89: "الفجر", 90: "البلد",
-            91: "الشمس", 92: "الليل", 93: "الضحى", 94: "الشرح", 95: "التين",
-            96: "العلق", 97: "القدر", 98: "البينة", 99: "الزلزلة", 100: "العاديات",
-            101: "القارعة", 102: "التكاثر", 103: "العصر", 104: "الهمزة", 105: "الفيل",
-            106: "قريش", 107: "الماعون", 108: "الكوثر", 109: "الكافرون", 110: "النصر",
-            111: "المسد", 112: "الإخلاص", 113: "الفلق", 114: "الناس"
-        };
-        return surahNames[surahNumber] || `سورة ${surahNumber}`;
-    }
-
-    generatePagesData() {
-        const pages = [];
-        for (let page = 1; page <= 604; page++) {
-            pages.push({
-                page: page,
-                start: {
-                    surah_number: this.calculateSurahFromPage(page),
-                    name: { ar: this.getSurahName(this.calculateSurahFromPage(page)) },
-                    juz: Math.ceil(page / 20)
-                },
-                end: {
-                    surah_number: this.calculateSurahFromPage(page),
-                    name: { ar: this.getSurahName(this.calculateSurahFromPage(page)) }
-                }
-            });
-        }
-        return pages;
+    getFallbackAudioUrl(surahNumber) {
+        const surahStr = surahNumber.toString().padStart(3, '0');
+        return `https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/${surahStr}.mp3`;
     }
 
     getEmbeddedData(type) {
         switch(type) {
             case 'pages':
-                return this.generatePagesData();
+                return this.pagesData;
             case 'surahs':
-                return EMBEDDED_SURAHS_DATA;
+                return this.surahsData;
             default:
-                throw new Error(`لا توجد بيانات مدمجة لـ ${type}`);
+                return [];
         }
     }
 }
 
-    getEmbeddedData(type) {
-        switch(type) {
-            case 'pages':
-                return EMBEDDED_PAGES_DATA;
-            case 'surahs':
-                return EMBEDDED_SURAHS_DATA;
-            default:
-                throw new Error(`لا توجد بيانات مدمجة لـ ${type}`);
+// ========================================
+// دوال مساعدة
+// ========================================
+function getSurahByPage(page) {
+    for (let i = EMBEDDED_SURAHS_DATA.length - 1; i >= 0; i--) {
+        if (EMBEDDED_SURAHS_DATA[i].start_page <= page) {
+            return EMBEDDED_SURAHS_DATA[i];
         }
     }
+    return EMBEDDED_SURAHS_DATA[0];
 }
 
+function calculateJuzFromPage(page) {
+    const juzPages = [1, 22, 42, 62, 82, 102, 122, 142, 162, 182, 202, 222, 242, 262, 282, 302, 322, 342, 362, 382, 402, 422, 442, 462, 482, 502, 522, 542, 562, 582];
+    
+    for (let i = juzPages.length - 1; i >= 0; i--) {
+        if (page >= juzPages[i]) {
+            return i + 1;
+        }
+    }
+    return 1;
+}
+
+function getJuzStartPage(juz) {
+    const juzPages = [1, 22, 42, 62, 82, 102, 122, 142, 162, 182, 202, 222, 242, 262, 282, 302, 322, 342, 362, 382, 402, 422, 442, 462, 482, 502, 522, 542, 562, 582];
+    return juzPages[juz - 1] || 1;
+}
+
+// ========================================
+// الفئة الرئيسية - QuranReader
+// ========================================
 class QuranReader {
     constructor() {
         this.currentPage = 1;
@@ -497,7 +278,7 @@ class QuranReader {
         this.availableSurahsInPage = [];
         this.autoPlayNext = true;
         this.dataManager = new QuranDataManager();
-        this.isOnline = true;
+        this.isOnline = navigator.onLine;
 
         this.initializeElements();
         this.setupEventListeners();
@@ -566,7 +347,6 @@ class QuranReader {
             this.updateConnectionStatus(false);
         });
 
-        // التحقق الأولي
         this.updateConnectionStatus(navigator.onLine);
     }
 
@@ -585,7 +365,6 @@ class QuranReader {
     }
 
     setDefaultTheme() {
-        // تفعيل الوضع الليلي افتراضيًا
         document.body.classList.add('dark-mode');
         const icon = this.themeBtn.querySelector('i');
         icon.className = 'fas fa-sun';
@@ -624,7 +403,7 @@ class QuranReader {
         // التنقل السريع
         this.navSurah.addEventListener('click', () => this.showSurahList());
         this.navJuz.addEventListener('click', () => this.showJuzList());
-        this.navSajda.addEventListener('click', () => this.showSajdaVerses());
+        this.navSajda.addEventListener('click', () => this.showSajdaInfo());
 
         // إغلاق النوافذ
         document.querySelectorAll('.close').forEach(closeBtn => {
@@ -633,14 +412,13 @@ class QuranReader {
             });
         });
 
-        // إغلاق النوافذ بالنقر خارجها
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
             }
         });
 
-        // اختصار لوحة المفاتيح
+        // اختصارات لوحة المفاتيح
         document.addEventListener('keydown', (e) => {
             if (e.target === this.searchInput) return;
 
@@ -701,10 +479,7 @@ class QuranReader {
 
     async loadInitialData() {
         try {
-            console.log('🔄 بدء تحميل بيانات القرآن...');
-            
-            // اختبار تحميل البيانات من المصادر الجديدة
-            console.log('🧪 اختبار تحميل البيانات...');
+            console.log('📄 بدء تحميل بيانات القرآن...');
             
             const [pagesData, surahsData] = await Promise.all([
                 this.dataManager.loadData('pages'),
@@ -718,19 +493,13 @@ class QuranReader {
             this.updatePage();
             
             console.log('✅ تم تحميل البيانات بنجاح');
-            console.log('📊 إحصائيات:', {
-                pages: this.pagesData.length,
-                surahs: this.surahsData.length
-            });
 
         } catch (error) {
             console.error('❌ خطأ في تحميل البيانات:', error);
-            // استخدام البيانات المدمجة كحل أخير
-            this.pagesData = EMBEDDED_PAGES_DATA;
-            this.surahsData = EMBEDDED_SURAHS_DATA;
+            this.pagesData = this.dataManager.pagesData;
+            this.surahsData = this.dataManager.surahsData;
             this.hideLoadingScreen();
             this.updatePage();
-            this.showMessage('تم تحميل البيانات الأساسية (البيانات الكاملة غير متوفرة)', 'info');
         }
     }
 
@@ -743,7 +512,6 @@ class QuranReader {
 
     async updatePage() {
         try {
-            // تحديث صورة الصفحة
             const imageUrl = this.dataManager.getPageImageUrl(this.currentPage);
             this.quranImg.src = imageUrl;
             this.quranImg.alt = `صفحة القرآن ${this.currentPage}`;
@@ -768,12 +536,10 @@ class QuranReader {
     }
 
     showImageError() {
-        // صورة بديلة عند فشل التحميل
-        this.quranImg.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="700" height="900" viewBox="0 0 700 900"><rect width="100%" height="100%" fill="%231a1a2e"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="%23e9ecef">صفحة ' + this.currentPage + '</text></svg>';
+        this.quranImg.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="700" height="900" viewBox="0 0 700 900"><rect width="100%" height="100%" fill="%231a1a2e"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="%23e9ecef">صفحة ${this.currentPage}</text></svg>`;
     }
 
     preloadNextPages() {
-        // تحميل مسبق للصفحات التالية
         const nextPages = [this.currentPage + 1, this.currentPage + 2];
         nextPages.forEach(page => {
             if (page <= this.totalPages) {
@@ -790,81 +556,27 @@ class QuranReader {
         if (pageInfo) {
             let surahText = `السورة: ${pageInfo.start.name.ar}`;
 
-            // إذا كانت الصفحة تحتوي على أكثر من سورة
             if (pageInfo.end && pageInfo.end.surah_number !== pageInfo.start.surah_number) {
                 surahText += ` - ${pageInfo.end.name.ar}`;
             }
 
             this.surahInfo.textContent = surahText;
-            this.juzInfo.textContent = `الجزء: ${pageInfo.start.juz || this.calculateJuz(this.currentPage)}`;
-        } else {
-            // معلومات افتراضية إذا لم توجد بيانات
-            this.surahInfo.textContent = `السورة: ${this.getSurahName(this.getCurrentSurah())}`;
-            this.juzInfo.textContent = `الجزء: ${this.calculateJuz(this.currentPage)}`;
+            this.juzInfo.textContent = `الجزء: ${pageInfo.start.juz}`;
         }
     }
 
     updateAvailableSurahs() {
-        if (!this.pagesData || !this.surahsData) return;
-
         this.availableSurahsInPage = [];
-
-        // البحث عن جميع السور التي تظهر في هذه الصفحة
-        const surahsInPage = new Set();
-
-        // البحث في بيانات السور عن أي سورة تحتوي على آيات في هذه الصفحة
-        this.surahsData.forEach(surah => {
-            surah.verses.forEach(verse => {
-                if (verse.page === this.currentPage) {
-                    surahsInPage.add(surah.number);
-                }
+        const surah = getSurahByPage(this.currentPage);
+        
+        if (surah) {
+            this.availableSurahsInPage.push({
+                number: surah.number,
+                name: surah.name.ar,
+                verses_count: surah.verses_count,
+                revelation_place: surah.revelation_place.ar
             });
-        });
-
-        // إذا لم نجد سوراً، نستخدم السور من بيانات الصفحات
-        if (surahsInPage.size === 0) {
-            const pageInfo = this.pagesData.find(page => page.page === this.currentPage);
-            if (pageInfo) {
-                if (pageInfo.start && pageInfo.start.surah_number) {
-                    surahsInPage.add(pageInfo.start.surah_number);
-                }
-                if (pageInfo.end && pageInfo.end.surah_number && pageInfo.end.surah_number !== pageInfo.start.surah_number) {
-                    surahsInPage.add(pageInfo.end.surah_number);
-                }
-            }
         }
-
-        // تحويل إلى مصفوفة وترتيبها حسب رقم السورة
-        this.availableSurahsInPage = Array.from(surahsInPage)
-            .sort((a, b) => a - b)
-            .map(surahNum => {
-                const surah = this.surahsData.find(s => s.number === surahNum);
-                return {
-                    number: surahNum,
-                    name: surah ? surah.name.ar : `سورة ${surahNum}`,
-                    verses_count: surah ? surah.verses_count : 0,
-                    revelation_place: surah ? surah.revelation_place.ar : 'مكية',
-                    verses_in_page: this.getVersesInPage(surahNum, this.currentPage)
-                };
-            });
-
-        console.log(`📖 الصفحة ${this.currentPage} تحتوي على السور:`, this.availableSurahsInPage.map(s => s.number));
-    }
-
-    getVersesInPage(surahNumber, pageNumber) {
-        if (!this.surahsData) return [];
-
-        const surah = this.surahsData.find(s => s.number === surahNumber);
-        if (!surah) return [];
-
-        return surah.verses.filter(verse => verse.page === pageNumber)
-            .map(verse => verse.number);
-    }
-
-    getCurrentSurah() {
-        if (!this.pagesData) return 1;
-        const pageInfo = this.pagesData.find(page => page.page === this.currentPage);
-        return pageInfo ? pageInfo.start.surah_number : 1;
     }
 
     previousPage() {
@@ -906,16 +618,11 @@ class QuranReader {
         if (this.isPlaying) {
             this.stopAudio();
         } else {
-            // إذا كانت الصفحة تحتوي على سورة واحدة فقط
             if (this.availableSurahsInPage.length === 1) {
                 await this.playSurahAudio(this.availableSurahsInPage[0].number);
-            }
-            // إذا كانت الصفحة تحتوي على أكثر من سورة
-            else if (this.availableSurahsInPage.length > 1) {
+            } else if (this.availableSurahsInPage.length > 1) {
                 this.showSurahSelection();
-            }
-            // إذا لم توجد سور معروفة
-            else {
+            } else {
                 await this.playCurrentPageAudio();
             }
         }
@@ -924,28 +631,21 @@ class QuranReader {
     showSurahSelection() {
         if (this.availableSurahsInPage.length === 0) return;
 
-        const selectionHTML = this.availableSurahsInPage.map(surah => {
-            const versesInfo = surah.verses_in_page && surah.verses_in_page.length > 0
-                ? ` | الآيات: ${surah.verses_in_page[0]} - ${surah.verses_in_page[surah.verses_in_page.length - 1]}`
-                : '';
-
-            return `
+        const selectionHTML = this.availableSurahsInPage.map(surah => `
             <div class="surah-audio-item" data-surah="${surah.number}">
                 <div class="surah-audio-info">
                     <div class="surah-audio-name">${surah.number}. ${surah.name}</div>
-                    <div class="surah-audio-details">${surah.revelation_place} | آيات: ${surah.verses_count}${versesInfo}</div>
+                    <div class="surah-audio-details">${surah.revelation_place} | آيات: ${surah.verses_count}</div>
                 </div>
                 <div class="play-audio-icon">
                     <i class="fas fa-play"></i>
                 </div>
             </div>
-            `;
-        }).join('');
+        `).join('');
 
         this.surahSelectionList.innerHTML = selectionHTML;
         this.surahSelector.style.display = 'flex';
 
-        // إضافة مستمعي الأحداث لعناصر الاختيار
         this.surahSelectionList.querySelectorAll('.surah-audio-item').forEach(item => {
             item.addEventListener('click', async () => {
                 const surahNum = parseInt(item.dataset.surah);
@@ -957,7 +657,7 @@ class QuranReader {
 
     async playSurahAudio(surahNumber) {
         try {
-            const audioData = await this.dataManager.getSurahAudio(surahNumber);
+            const audioData = await this.dataManager.loadData('audio', { surah: surahNumber });
             
             if (audioData && audioData.length > 0) {
                 this.currentAudio = audioData[0].link;
@@ -967,7 +667,6 @@ class QuranReader {
                 const surah = this.surahsData.find(s => s.number === surahNumber);
                 this.audioInfo.textContent = `سورة ${surah.name.ar} - الصفحة ${this.currentPage}`;
 
-                // إضافة معالجة الأخطاء للصوت
                 this.audioPlayer.onerror = () => {
                     console.error('❌ فشل تشغيل الصوت');
                     this.showMessage('تعذر تشغيل التلاوة', 'error');
@@ -986,16 +685,9 @@ class QuranReader {
     }
 
     async playCurrentPageAudio() {
-        try {
-            const pageInfo = this.pagesData.find(page => page.page === this.currentPage);
-            if (!pageInfo) return;
-
-            const surahNumber = pageInfo.start.surah_number;
-            if (surahNumber) {
-                await this.playSurahAudio(surahNumber);
-            }
-        } catch (error) {
-            console.error('خطأ في تشغيل الصوت:', error);
+        const surah = getSurahByPage(this.currentPage);
+        if (surah) {
+            await this.playSurahAudio(surah.number);
         }
     }
 
@@ -1022,7 +714,6 @@ class QuranReader {
     }
 
     onAudioEnded() {
-        // عندما تنتهي السورة، تشغيل السورة التالية تلقائياً
         if (this.autoPlayNext && this.currentAudioSurah) {
             this.playNextSurah();
         } else {
@@ -1031,26 +722,16 @@ class QuranReader {
     }
 
     async playNextSurah() {
-        const currentSurahNumber = this.currentAudioSurah;
-
-        // البحث عن السورة التالية
-        const nextSurahNumber = currentSurahNumber + 1;
+        const nextSurahNumber = this.currentAudioSurah + 1;
 
         if (nextSurahNumber <= 114) {
-            // البحث عن الصفحة الأولى للسورة التالية
             const nextSurah = this.surahsData.find(s => s.number === nextSurahNumber);
-            if (nextSurah && nextSurah.verses.length > 0) {
-                const firstVersePage = nextSurah.verses[0].page;
-
-                // الانتقال إلى صفحة السورة التالية
-                this.currentPage = firstVersePage;
+            if (nextSurah) {
+                this.currentPage = nextSurah.start_page;
                 this.updatePage();
-
-                // تشغيل السورة التالية
                 await this.playSurahAudio(nextSurahNumber);
             }
         } else {
-            // إذا كانت هذه آخر سورة، نوقف التشغيل
             this.stopAudio();
             this.showMessage('تم الانتهاء من القرآن الكريم', 'success');
         }
@@ -1086,30 +767,15 @@ class QuranReader {
         const lowerQuery = query.toLowerCase();
 
         this.surahsData.forEach(surah => {
-            // البحث في أسماء السور
-            if (surah.name.ar.includes(query) ||
-                surah.name.en.toLowerCase().includes(lowerQuery) ||
-                surah.name.transliteration.toLowerCase().includes(lowerQuery)) {
+            if (surah.name.ar.includes(query) || 
+                surah.name.en.toLowerCase().includes(lowerQuery)) {
                 results.push({
                     type: 'surah',
                     surah: surah.number,
                     text: `سورة ${surah.name.ar}`,
-                    page: surah.verses[0]?.page || 1
+                    page: surah.start_page
                 });
             }
-
-            // البحث في الآيات
-            surah.verses.forEach(verse => {
-                if (verse.text.ar.includes(query)) {
-                    results.push({
-                        type: 'verse',
-                        surah: surah.number,
-                        verse: verse.number,
-                        text: `سورة ${surah.name.ar} - الآية ${verse.number}: ${verse.text.ar.substring(0, 50)}...`,
-                        page: verse.page
-                    });
-                }
-            });
         });
 
         return results.slice(0, 20);
@@ -1120,13 +786,12 @@ class QuranReader {
             this.searchResults.innerHTML = '<div class="search-result-item">لم يتم العثور على نتائج</div>';
         } else {
             this.searchResults.innerHTML = results.map(result => `
-                <div class="search-result-item" data-type="${result.type}" data-surah="${result.surah}" data-verse="${result.verse || ''}" data-page="${result.page}">
+                <div class="search-result-item" data-page="${result.page}">
                     ${result.text}
                 </div>
             `).join('');
         }
 
-        // إضافة مستمعي الأحداث للنتائج
         this.searchResults.querySelectorAll('.search-result-item').forEach(item => {
             item.addEventListener('click', () => {
                 const page = parseInt(item.dataset.page);
@@ -1143,7 +808,7 @@ class QuranReader {
         if (!this.surahsData) return;
 
         const surahListHTML = this.surahsData.map(surah => `
-            <div class="surah-item" data-surah="${surah.number}" data-page="${surah.verses[0]?.page || 1}">
+            <div class="surah-item" data-page="${surah.start_page}">
                 <div class="surah-number">${surah.number}</div>
                 <div class="surah-name">${surah.name.ar}</div>
                 <div class="surah-details">
@@ -1153,10 +818,12 @@ class QuranReader {
             </div>
         `).join('');
 
-        this.surahModal.querySelector('.modal-body').innerHTML = surahListHTML;
-        this.surahModal.style.display = 'block';
+        const listContent = this.surahModal.querySelector('#surah-list-content');
+        if (listContent) {
+            listContent.innerHTML = surahListHTML;
+        }
+        this.surahModal.style.display = 'flex';
 
-        // إضافة مستمعي الأحداث
         this.surahModal.querySelectorAll('.surah-item').forEach(item => {
             item.addEventListener('click', () => {
                 const page = parseInt(item.dataset.page);
@@ -1169,19 +836,21 @@ class QuranReader {
     showJuzList() {
         const juzListHTML = Array.from({ length: 30 }, (_, i) => {
             const juzNumber = i + 1;
-            const startPage = this.calculateJuzStartPage(juzNumber);
+            const startPage = getJuzStartPage(juzNumber);
             return `
-                <div class="juz-item" data-juz="${juzNumber}" data-page="${startPage}">
+                <div class="juz-item" data-page="${startPage}">
                     <div class="juz-number">الجزء ${juzNumber}</div>
                     <div class="juz-page">الصفحة ${startPage}</div>
                 </div>
             `;
         }).join('');
 
-        this.juzModal.querySelector('.modal-body').innerHTML = juzListHTML;
-        this.juzModal.style.display = 'block';
+        const listContent = this.juzModal.querySelector('#juz-list-content');
+        if (listContent) {
+            listContent.innerHTML = juzListHTML;
+        }
+        this.juzModal.style.display = 'flex';
 
-        // إضافة مستمعي الأحداث
         this.juzModal.querySelectorAll('.juz-item').forEach(item => {
             item.addEventListener('click', () => {
                 const page = parseInt(item.dataset.page);
@@ -1191,45 +860,40 @@ class QuranReader {
         });
     }
 
-    showSajdaVerses() {
-        const sajdaVerses = [];
-        this.surahsData.forEach(surah => {
-            surah.verses.forEach(verse => {
-                if (verse.sajda) {
-                    sajdaVerses.push({
-                        surah: surah.number,
-                        surahName: surah.name.ar,
-                        verse: verse.number,
-                        text: verse.text.ar,
-                        page: verse.page
-                    });
-                }
-            });
-        });
-
-        if (sajdaVerses.length === 0) {
-            this.showMessage('لا توجد آيات سجدة في هذه البيانات', 'info');
-            return;
-        }
+    showSajdaInfo() {
+        const sajdaVerses = [
+            { surah: 7, name: "الأعراف", verse: 206, page: 176 },
+            { surah: 13, name: "الرعد", verse: 15, page: 253 },
+            { surah: 16, name: "النحل", verse: 50, page: 274 },
+            { surah: 17, name: "الإسراء", verse: 109, page: 291 },
+            { surah: 19, name: "مريم", verse: 58, page: 310 },
+            { surah: 22, name: "الحج", verse: 18, page: 333 },
+            { surah: 22, name: "الحج", verse: 77, page: 341 },
+            { surah: 25, name: "الفرقان", verse: 60, page: 365 },
+            { surah: 27, name: "النمل", verse: 26, page: 379 },
+            { surah: 32, name: "السجدة", verse: 15, page: 416 },
+            { surah: 38, name: "ص", verse: 24, page: 456 },
+            { surah: 41, name: "فصلت", verse: 38, page: 480 },
+            { surah: 53, name: "النجم", verse: 62, page: 527 },
+            { surah: 84, name: "الانشقاق", verse: 21, page: 589 },
+            { surah: 96, name: "العلق", verse: 19, page: 597 }
+        ];
 
         const sajdaHTML = sajdaVerses.map(verse => `
-            <div class="sajda-item" data-surah="${verse.surah}" data-verse="${verse.verse}" data-page="${verse.page}">
-                <div class="sajda-surah">سورة ${verse.surahName} - الآية ${verse.verse}</div>
-                <div class="sajda-text">${verse.text}</div>
+            <div class="sajda-item" data-page="${verse.page}">
+                <div class="sajda-surah">سورة ${verse.name} - الآية ${verse.verse}</div>
                 <div class="sajda-page">الصفحة ${verse.page}</div>
             </div>
         `).join('');
 
         const modal = document.createElement('div');
         modal.className = 'modal';
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
         modal.innerHTML = `
             <div class="modal-content">
-                <div class="modal-header">
-                    <h3>آيات السجود</h3>
-                    <span class="close">&times;</span>
-                </div>
-                <div class="modal-body">
+                <span class="close">&times;</span>
+                <h3><i class="fas fa-praying-hands"></i> آيات السجود</h3>
+                <div class="modal-list">
                     ${sajdaHTML}
                 </div>
             </div>
@@ -1237,7 +901,6 @@ class QuranReader {
 
         document.body.appendChild(modal);
 
-        // إضافة مستمعي الأحداث
         modal.querySelector('.close').addEventListener('click', () => {
             modal.remove();
         });
@@ -1257,68 +920,37 @@ class QuranReader {
         });
     }
 
-    calculateJuz(page) {
-        // حساب تقريبي للجزء بناءً على رقم الصفحة
-        if (page <= 22) return 1;
-        if (page <= 42) return 2;
-        if (page <= 62) return 3;
-        if (page <= 82) return 4;
-        if (page <= 102) return 5;
-        if (page <= 122) return 6;
-        if (page <= 142) return 7;
-        if (page <= 162) return 8;
-        if (page <= 182) return 9;
-        if (page <= 202) return 10;
-        if (page <= 222) return 11;
-        if (page <= 242) return 12;
-        if (page <= 262) return 13;
-        if (page <= 282) return 14;
-        if (page <= 302) return 15;
-        if (page <= 322) return 16;
-        if (page <= 342) return 17;
-        if (page <= 362) return 18;
-        if (page <= 382) return 19;
-        if (page <= 402) return 20;
-        if (page <= 422) return 21;
-        if (page <= 442) return 22;
-        if (page <= 462) return 23;
-        if (page <= 482) return 24;
-        if (page <= 502) return 25;
-        if (page <= 522) return 26;
-        if (page <= 542) return 27;
-        if (page <= 562) return 28;
-        if (page <= 582) return 29;
-        return 30;
-    }
-
-    calculateJuzStartPage(juz) {
-        const juzPages = {
-            1: 1, 2: 22, 3: 42, 4: 62, 5: 82, 6: 102, 7: 122, 8: 142, 9: 162, 10: 182,
-            11: 202, 12: 222, 13: 242, 14: 262, 15: 282, 16: 302, 17: 322, 18: 342,
-            19: 362, 20: 382, 21: 402, 22: 422, 23: 442, 24: 462, 25: 482, 26: 502,
-            27: 522, 28: 542, 29: 562, 30: 582
-        };
-        return juzPages[juz] || 1;
-    }
-
-    getSurahName(surahNumber) {
-        const surah = this.surahsData.find(s => s.number === surahNumber);
-        return surah ? surah.name.ar : `سورة ${surahNumber}`;
-    }
-
     showMessage(message, type = 'info') {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : type === 'warning' ? '#e67e22' : '#2e86ab'};
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 10000;
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        `;
         messageDiv.textContent = message;
 
         document.body.appendChild(messageDiv);
 
         setTimeout(() => {
-            messageDiv.classList.add('show');
+            messageDiv.style.opacity = '1';
+            messageDiv.style.transform = 'translateY(0)';
         }, 100);
 
         setTimeout(() => {
-            messageDiv.classList.remove('show');
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transform = 'translateY(-20px)';
             setTimeout(() => {
                 if (messageDiv.parentNode) {
                     messageDiv.parentNode.removeChild(messageDiv);
@@ -1328,30 +960,10 @@ class QuranReader {
     }
 }
 
-// دالة لاختبار جميع المصادر
-function testDataSources() {
-    console.log('🧪 اختبار جميع مصادر البيانات...');
-    
-    const testUrls = [
-        'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/pagesQuran.json',
-        'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/mainDataQuran.json',
-        'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/data/quran_image/1.png',
-        'https://cdn.jsdelivr.net/gh/rn0x/Quran-Data@version-2.0/data/json/audio/audio_surah_1.json'
-    ];
-    
-    testUrls.forEach(url => {
-        fetch(url)
-            .then(response => {
-                console.log(`✅ ${url}: ${response.status}`);
-            })
-            .catch(error => {
-                console.error(`❌ ${url}: ${error.message}`);
-            });
-    });
-}
-
+// ========================================
 // تشغيل التطبيق
+// ========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // testDataSources(); // فك التعليق لاختبار المصادر
     new QuranReader();
+    console.log('✅ تم تشغيل GT-QURANREADER بنجاح');
 });
