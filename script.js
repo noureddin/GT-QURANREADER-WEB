@@ -1,9 +1,9 @@
-// script.js - GT-QURANREADER-WEB v4.1
+// script.js - GT-QURANREADER-WEB v4.1 (مصححة)
 
 // ========================================
 // بيانات السور (مضمنة)
 // ========================================
-const EMBEDDED_SURAHS_DATA = [ /* كما في نسختك */ ];
+const EMBEDDED_SURAHS_DATA = [ /* بيانات السور كما في نسختك */ ];
 
 // ========================================
 // توليد بيانات الصفحات
@@ -13,10 +13,16 @@ function generatePagesData() {
     for (let page = 1; page <= 604; page++) {
         const surah = getSurahByPage(page);
         const juz = calculateJuzFromPage(page);
+
+        // تحديد السورة النهائية في الصفحة
+        let nextSurah = EMBEDDED_SURAHS_DATA.find(s => s.start_page > page);
+        let endSurahNumber = nextSurah ? nextSurah.number - 1 : surah.number;
+        let endSurah = EMBEDDED_SURAHS_DATA.find(s => s.number === endSurahNumber) || surah;
+
         pages.push({
             page: page,
             start: { surah_number: surah.number, name: { ar: surah.name.ar }, juz: juz },
-            end: { surah_number: surah.number, name: { ar: surah.name.ar } }
+            end: { surah_number: endSurah.number, name: { ar: endSurah.name.ar } }
         });
     }
     return pages;
@@ -58,10 +64,12 @@ class QuranDataManager {
         try {
             const response = await fetch(`${this.baseURL}/surah/${surahNumber}/ar.alafasy`);
             const data = await response.json();
-            if (data.code === 200 && data.data.ayahs?.length > 0) {
+            if (data.code === 200 && data.data?.ayahs?.length > 0) {
                 return [{ link: data.data.ayahs[0].audio || this.getFallbackAudioUrl(surahNumber), name: 'مشاري العفاسي' }];
             }
-        } catch {}
+        } catch (error) {
+            console.warn(`⚠️ فشل تحميل الصوت لسورة ${surahNumber}:`, error);
+        }
         return [{ link: this.getFallbackAudioUrl(surahNumber), name: 'عبد الباسط عبد الصمد' }];
     }
 
