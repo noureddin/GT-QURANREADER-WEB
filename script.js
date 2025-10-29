@@ -1,883 +1,1099 @@
-// script.js
-// GT-QURANREADER-WEB — نسخة محدثة لعرض نصي/صور متزامن + صوت
-// يعتمد على: https://api.alquran.cloud/v1 (افتراضي) و https://api.santrikoding.com/surah (جديد)
-// مؤلف: مُعدّ لك بناءً على طلبك
-
-// ========================================
-// بيانات السور المضمنة (لاستعمال المعلومات الأساسية)
-// ========================================
-const EMBEDDED_SURAHS_DATA = [
-    { number: 1, name: { ar: "الفاتحة", en: "Al-Fatiha" }, verses_count: 7, revelation_place: { ar: "مكية" }, start_page: 1 },
-    { number: 2, name: { ar: "البقرة", en: "Al-Baqarah" }, verses_count: 286, revelation_place: { ar: "مدنية" }, start_page: 2 },
-    { number: 3, name: { ar: "آل عمران", en: "Aal-E-Imran" }, verses_count: 200, revelation_place: { ar: "مدنية" }, start_page: 50 },
-    { number: 4, name: { ar: "النساء", en: "An-Nisa" }, verses_count: 176, revelation_place: { ar: "مدنية" }, start_page: 77 },
-    { number: 5, name: { ar: "المائدة", en: "Al-Maidah" }, verses_count: 120, revelation_place: { ar: "مدنية" }, start_page: 106 },
-    { number: 6, name: { ar: "الأنعام", en: "Al-Anaam" }, verses_count: 165, revelation_place: { ar: "مكية" }, start_page: 128 },
-    { number: 7, name: { ar: "الأعراف", en: "Al-Araf" }, verses_count: 206, revelation_place: { ar: "مكية" }, start_page: 151 },
-    { number: 8, name: { ar: "الأنفال", en: "Al-Anfal" }, verses_count: 75, revelation_place: { ar: "مدنية" }, start_page: 177 },
-    { number: 9, name: { ar: "التوبة", en: "At-Tawbah" }, verses_count: 129, revelation_place: { ar: "مدنية" }, start_page: 187 },
-    { number: 10, name: { ar: "يونس", en: "Yunus" }, verses_count: 109, revelation_place: { ar: "مكية" }, start_page: 208 },
-    { number: 11, name: { ar: "هود", en: "Hud" }, verses_count: 123, revelation_place: { ar: "مكية" }, start_page: 221 },
-    { number: 12, name: { ar: "يوسف", en: "Yusuf" }, verses_count: 111, revelation_place: { ar: "مكية" }, start_page: 235 },
-    { number: 13, name: { ar: "الرعد", en: "Ar-Rad" }, verses_count: 43, revelation_place: { ar: "مدنية" }, start_page: 249 },
-    { number: 14, name: { ar: "إبراهيم", en: "Ibrahim" }, verses_count: 52, revelation_place: { ar: "مكية" }, start_page: 255 },
-    { number: 15, name: { ar: "الحجر", en: "Al-Hijr" }, verses_count: 99, revelation_place: { ar: "مكية" }, start_page: 262 },
-    { number: 16, name: { ar: "النحل", en: "An-Nahl" }, verses_count: 128, revelation_place: { ar: "مكية" }, start_page: 267 },
-    { number: 17, name: { ar: "الإسراء", en: "Al-Isra" }, verses_count: 111, revelation_place: { ar: "مكية" }, start_page: 282 },
-    { number: 18, name: { ar: "الكهف", en: "Al-Kahf" }, verses_count: 110, revelation_place: { ar: "مكية" }, start_page: 293 },
-    { number: 19, name: { ar: "مريم", en: "Maryam" }, verses_count: 98, revelation_place: { ar: "مكية" }, start_page: 305 },
-    { number: 20, name: { ar: "طه", en: "Taha" }, verses_count: 135, revelation_place: { ar: "مكية" }, start_page: 312 },
-    { number: 21, name: { ar: "الأنبياء", en: "Al-Anbiya" }, verses_count: 112, revelation_place: { ar: "مكية" }, start_page: 322 },
-    { number: 22, name: { ar: "الحج", en: "Al-Hajj" }, verses_count: 78, revelation_place: { ar: "مدنية" }, start_page: 332 },
-    { number: 23, name: { ar: "المؤمنون", en: "Al-Muminun" }, verses_count: 118, revelation_place: { ar: "مكية" }, start_page: 342 },
-    { number: 24, name: { ar: "النور", en: "An-Nur" }, verses_count: 64, revelation_place: { ar: "مدنية" }, start_page: 350 },
-    { number: 25, name: { ar: "الفرقان", en: "Al-Furqan" }, verses_count: 77, revelation_place: { ar: "مكية" }, start_page: 359 },
-    { number: 26, name: { ar: "الشعراء", en: "Ash-Shuara" }, verses_count: 227, revelation_place: { ar: "مكية" }, start_page: 367 },
-    { number: 27, name: { ar: "النمل", en: "An-Naml" }, verses_count: 93, revelation_place: { ar: "مكية" }, start_page: 377 },
-    { number: 28, name: { ar: "القصص", en: "Al-Qasas" }, verses_count: 88, revelation_place: { ar: "مكية" }, start_page: 385 },
-    { number: 29, name: { ar: "العنكبوت", en: "Al-Ankabut" }, verses_count: 69, revelation_place: { ar: "مكية" }, start_page: 396 },
-    { number: 30, name: { ar: "الروم", en: "Ar-Rum" }, verses_count: 60, revelation_place: { ar: "مكية" }, start_page: 404 },
-    { number: 31, name: { ar: "لقمان", en: "Luqman" }, verses_count: 34, revelation_place: { ar: "مكية" }, start_page: 411 },
-    { number: 32, name: { ar: "السجدة", en: "As-Sajdah" }, verses_count: 30, revelation_place: { ar: "مكية" }, start_page: 415 },
-    { number: 33, name: { ar: "الأحزاب", en: "Al-Ahzab" }, verses_count: 73, revelation_place: { ar: "مدنية" }, start_page: 418 },
-    { number: 34, name: { ar: "سبأ", en: "Saba" }, verses_count: 54, revelation_place: { ar: "مكية" }, start_page: 428 },
-    { number: 35, name: { ar: "فاطر", en: "Fatir" }, verses_count: 45, revelation_place: { ar: "مكية" }, start_page: 434 },
-    { number: 36, name: { ar: "يس", en: "Ya-Sin" }, verses_count: 83, revelation_place: { ar: "مكية" }, start_page: 440 },
-    { number: 37, name: { ar: "الصافات", en: "As-Saffat" }, verses_count: 182, revelation_place: { ar: "مكية" }, start_page: 446 },
-    { number: 38, name: { ar: "ص", en: "Sad" }, verses_count: 88, revelation_place: { ar: "مكية" }, start_page: 453 },
-    { number: 39, name: { ar: "الزمر", en: "Az-Zumar" }, verses_count: 75, revelation_place: { ar: "مكية" }, start_page: 458 },
-    { number: 40, name: { ar: "غافر", en: "Ghafir" }, verses_count: 85, revelation_place: { ar: "مكية" }, start_page: 467 },
-    { number: 41, name: { ar: "فصلت", en: "Fussilat" }, verses_count: 54, revelation_place: { ar: "مكية" }, start_page: 477 },
-    { number: 42, name: { ar: "الشورى", en: "Ash-Shura" }, verses_count: 53, revelation_place: { ar: "مكية" }, start_page: 483 },
-    { number: 43, name: { ar: "الزخرف", en: "Az-Zukhruf" }, verses_count: 89, revelation_place: { ar: "مكية" }, start_page: 489 },
-    { number: 44, name: { ar: "الدخان", en: "Ad-Dukhan" }, verses_count: 59, revelation_place: { ar: "مكية" }, start_page: 496 },
-    { number: 45, name: { ar: "الجاثية", en: "Al-Jathiyah" }, verses_count: 37, revelation_place: { ar: "مكية" }, start_page: 499 },
-    { number: 46, name: { ar: "الأحقاف", en: "Al-Ahqaf" }, verses_count: 35, revelation_place: { ar: "مكية" }, start_page: 502 },
-    { number: 47, name: { ar: "محمد", en: "Muhammad" }, verses_count: 38, revelation_place: { ar: "مدنية" }, start_page: 507 },
-    { number: 48, name: { ar: "الفتح", en: "Al-Fath" }, verses_count: 29, revelation_place: { ar: "مدنية" }, start_page: 511 },
-    { number: 49, name: { ar: "الحجرات", en: "Al-Hujurat" }, verses_count: 18, revelation_place: { ar: "مدنية" }, start_page: 515 },
-    { number: 50, name: { ar: "ق", en: "Qaf" }, verses_count: 45, revelation_place: { ar: "مكية" }, start_page: 518 },
-    { number: 51, name: { ar: "الذاريات", en: "Adh-Dhariyat" }, verses_count: 60, revelation_place: { ar: "مكية" }, start_page: 520 },
-    { number: 52, name: { ar: "الطور", en: "At-Tur" }, verses_count: 49, revelation_place: { ar: "مكية" }, start_page: 523 },
-    { number: 53, name: { ar: "النجم", en: "An-Najm" }, verses_count: 62, revelation_place: { ar: "مكية" }, start_page: 526 },
-    { number: 54, name: { ar: "القمر", en: "Al-Qamar" }, verses_count: 55, revelation_place: { ar: "مكية" }, start_page: 528 },
-    { number: 55, name: { ar: "الرحمن", en: "Ar-Rahman" }, verses_count: 78, revelation_place: { ar: "مدنية" }, start_page: 531 },
-    { number: 56, name: { ar: "الواقعة", en: "Al-Waqiah" }, verses_count: 96, revelation_place: { ar: "مكية" }, start_page: 534 },
-    { number: 57, name: { ar: "الحديد", en: "Al-Hadid" }, verses_count: 29, revelation_place: { ar: "مدنية" }, start_page: 537 },
-    { number: 58, name: { ar: "المجادلة", en: "Al-Mujadila" }, verses_count: 22, revelation_place: { ar: "مدنية" }, start_page: 542 },
-    { number: 59, name: { ar: "الحشر", en: "Al-Hashr" }, verses_count: 24, revelation_place: { ar: "مدنية" }, start_page: 545 },
-    { number: 60, name: { ar: "الممتحنة", en: "Al-Mumtahanah" }, verses_count: 13, revelation_place: { ar: "مدنية" }, start_page: 549 },
-    { number: 61, name: { ar: "الصف", en: "As-Saff" }, verses_count: 14, revelation_place: { ar: "مدنية" }, start_page: 551 },
-    { number: 62, name: { ar: "الجمعة", en: "Al-Jumuah" }, verses_count: 11, revelation_place: { ar: "مدنية" }, start_page: 553 },
-    { number: 63, name: { ar: "المنافقون", en: "Al-Munafiqun" }, verses_count: 11, revelation_place: { ar: "مدنية" }, start_page: 554 },
-    { number: 64, name: { ar: "التغابن", en: "At-Taghabun" }, verses_count: 18, revelation_place: { ar: "مدنية" }, start_page: 556 },
-    { number: 65, name: { ar: "الطلاق", en: "At-Talaq" }, verses_count: 12, revelation_place: { ar: "مدنية" }, start_page: 558 },
-    { number: 66, name: { ar: "التحريم", en: "At-Tahrim" }, verses_count: 12, revelation_place: { ar: "مدنية" }, start_page: 560 },
-    { number: 67, name: { ar: "الملك", en: "Al-Mulk" }, verses_count: 30, revelation_place: { ar: "مكية" }, start_page: 562 },
-    { number: 68, name: { ar: "القلم", en: "Al-Qalam" }, verses_count: 52, revelation_place: { ar: "مكية" }, start_page: 564 },
-    { number: 69, name: { ar: "الحاقة", en: "Al-Haqqah" }, verses_count: 52, revelation_place: { ar: "مكية" }, start_page: 566 },
-    { number: 70, name: { ar: "المعارج", en: "Al-Maarij" }, verses_count: 44, revelation_place: { ar: "مكية" }, start_page: 568 },
-    { number: 71, name: { ar: "نوح", en: "Nuh" }, verses_count: 28, revelation_place: { ar: "مكية" }, start_page: 570 },
-    { number: 72, name: { ar: "الجن", en: "Al-Jinn" }, verses_count: 28, revelation_place: { ar: "مكية" }, start_page: 572 },
-    { number: 73, name: { ar: "المزمل", en: "Al-Muzzammil" }, verses_count: 20, revelation_place: { ar: "مكية" }, start_page: 574 },
-    { number: 74, name: { ar: "المدثر", en: "Al-Muddathir" }, verses_count: 56, revelation_place: { ar: "مكية" }, start_page: 575 },
-    { number: 75, name: { ar: "القيامة", en: "Al-Qiyamah" }, verses_count: 40, revelation_place: { ar: "مكية" }, start_page: 577 },
-    { number: 76, name: { ar: "الإنسان", en: "Al-Insan" }, verses_count: 31, revelation_place: { ar: "مدنية" }, start_page: 578 },
-    { number: 77, name: { ar: "المرسلات", en: "Al-Mursalat" }, verses_count: 50, revelation_place: { ar: "مكية" }, start_page: 580 },
-    { number: 78, name: { ar: "النبأ", en: "An-Naba" }, verses_count: 40, revelation_place: { ar: "مكية" }, start_page: 582 },
-    { number: 79, name: { ar: "النازعات", en: "An-Naziat" }, verses_count: 46, revelation_place: { ar: "مكية" }, start_page: 583 },
-    { number: 80, name: { ar: "عبس", en: "Abasa" }, verses_count: 42, revelation_place: { ar: "مكية" }, start_page: 585 },
-    { number: 81, name: { ar: "التكوير", en: "At-Takwir" }, verses_count: 29, revelation_place: { ar: "مكية" }, start_page: 586 },
-    { number: 82, name: { ar: "الانفطار", en: "Al-Infitar" }, verses_count: 19, revelation_place: { ar: "مكية" }, start_page: 587 },
-    { number: 83, name: { ar: "المطففين", en: "Al-Mutaffifin" }, verses_count: 36, revelation_place: { ar: "مكية" }, start_page: 587 },
-    { number: 84, name: { ar: "الانشقاق", en: "Al-Inshiqaq" }, verses_count: 25, revelation_place: { ar: "مكية" }, start_page: 589 },
-    { number: 85, name: { ar: "البروج", en: "Al-Buruj" }, verses_count: 22, revelation_place: { ar: "مكية" }, start_page: 590 },
-    { number: 86, name: { ar: "الطارق", en: "At-Tariq" }, verses_count: 17, revelation_place: { ar: "مكية" }, start_page: 591 },
-    { number: 87, name: { ar: "الأعلى", en: "Al-Ala" }, verses_count: 19, revelation_place: { ar: "مكية" }, start_page: 591 },
-    { number: 88, name: { ar: "الغاشية", en: "Al-Ghashiyah" }, verses_count: 26, revelation_place: { ar: "مكية" }, start_page: 592 },
-    { number: 89, name: { ar: "الفجر", en: "Al-Fajr" }, verses_count: 30, revelation_place: { ar: "مكية" }, start_page: 593 },
-    { number: 90, name: { ar: "البلد", en: "Al-Balad" }, verses_count: 20, revelation_place: { ar: "مكية" }, start_page: 594 },
-    { number: 91, name: { ar: "الشمس", en: "Ash-Shams" }, verses_count: 15, revelation_place: { ar: "مكية" }, start_page: 595 },
-    { number: 92, name: { ar: "الليل", en: "Al-Layl" }, verses_count: 21, revelation_place: { ar: "مكية" }, start_page: 595 },
-    { number: 93, name: { ar: "الضحى", en: "Ad-Dhuha" }, verses_count: 11, revelation_place: { ar: "مكية" }, start_page: 596 },
-    { number: 94, name: { ar: "الشرح", en: "Ash-Sharh" }, verses_count: 8, revelation_place: { ar: "مكية" }, start_page: 596 },
-    { number: 95, name: { ar: "التين", en: "At-Tin" }, verses_count: 8, revelation_place: { ar: "مكية" }, start_page: 597 },
-    { number: 96, name: { ar: "العلق", en: "Al-Alaq" }, verses_count: 19, revelation_place: { ar: "مكية" }, start_page: 597 },
-    { number: 97, name: { ar: "القدر", en: "Al-Qadr" }, verses_count: 5, revelation_place: { ar: "مكية" }, start_page: 598 },
-    { number: 98, name: { ar: "البينة", en: "Al-Bayyinah" }, verses_count: 8, revelation_place: { ar: "مدنية" }, start_page: 598 },
-    { number: 99, name: { ar: "الزلزلة", en: "Az-Zalzalah" }, verses_count: 8, revelation_place: { ar: "مدنية" }, start_page: 599 },
-    { number: 100, name: { ar: "العاديات", en: "Al-Adiyat" }, verses_count: 11, revelation_place: { ar: "مكية" }, start_page: 599 },
-    { number: 101, name: { ar: "القارعة", en: "Al-Qariah" }, verses_count: 11, revelation_place: { ar: "مكية" }, start_page: 600 },
-    { number: 102, name: { ar: "التكاثر", en: "At-Takathur" }, verses_count: 8, revelation_place: { ar: "مكية" }, start_page: 600 },
-    { number: 103, name: { ar: "العصر", en: "Al-Asr" }, verses_count: 3, revelation_place: { ar: "مكية" }, start_page: 601 },
-    { number: 104, name: { ar: "الهمزة", en: "Al-Humazah" }, verses_count: 9, revelation_place: { ar: "مكية" }, start_page: 601 },
-    { number: 105, name: { ar: "الفيل", en: "Al-Fil" }, verses_count: 5, revelation_place: { ar: "مكية" }, start_page: 602 },
-    { number: 106, name: { ar: "قريش", en: "Quraysh" }, verses_count: 4, revelation_place: { ar: "مكية" }, start_page: 602 },
-    { number: 107, name: { ar: "الماعون", en: "Al-Maun" }, verses_count: 7, revelation_place: { ar: "مكية" }, start_page: 603 },
-    { number: 108, name: { ar: "الكوثر", en: "Al-Kawthar" }, verses_count: 3, revelation_place: { ar: "مكية" }, start_page: 603 },
-    { number: 109, name: { ar: "الكافرون", en: "Al-Kafirun" }, verses_count: 6, revelation_place: { ar: "مكية" }, start_page: 603 },
-    { number: 110, name: { ar: "النصر", en: "An-Nasr" }, verses_count: 3, revelation_place: { ar: "مدنية" }, start_page: 604 },
-    { number: 111, name: { ar: "المسد", en: "Al-Masad" }, verses_count: 5, revelation_place: { ar: "مكية" }, start_page: 604 },
-    { number: 112, name: { ar: "الإخلاص", en: "Al-Ikhlas" }, verses_count: 4, revelation_place: { ar: "مكية" }, start_page: 604 },
-    { number: 113, name: { ar: "الفلق", en: "Al-Falaq" }, verses_count: 5, revelation_place: { ar: "مكية" }, start_page: 604 },
-    { number: 114, name: { ar: "الناس", en: "An-Nas" }, verses_count: 6, revelation_place: { ar: "مكية" }, start_page: 604 }
-];
-
-// قائمة القراء المعتمدة (للتوسع المستقبلي)
-const AVAILABLE_RECITERS = [
-    { id: 'ar.alafasy', name: 'مشاري العفاسي', fallbackBase: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/' },
-    { id: 'ar.abdulbasitmurattal', name: 'عبد الباسط مرتل', fallbackBase: 'https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/' },
-];
-
-// قائمة الخطوط المعتمدة
-const AVAILABLE_FONTS = [
-    { id: 'UthmanicHafs1', name: 'خط عثماني (المصحف)', style: 'UthmanicHafs1 Ver13.otf' },
-    { id: 'AmiriQuran', name: 'خط أميري', style: 'ArbFONTS-Amiri Quran.ttf' },
-    { id: 'AmiriQuranColored', name: 'خط أميري ملون', style: 'amiri-quran-colored.ttf' },
-];
-
-// ========================================
-// توليد بيانات الصفحات (604 صفحة)
-// ========================================
-function generatePagesData() {
-    const pages = [];
-    for (let page = 1; page <= 604; page++) {
-        const surah = getSurahByPage(page);
-        const juz = calculateJuzFromPage(page);
-        pages.push({
-            page: page,
-            start: {
-                surah_number: surah.number,
-                name: { ar: surah.name.ar },
-                juz: juz
-            },
-            end: {
-                surah_number: surah.number,
-                name: { ar: surah.name.ar }
-            }
-        });
-    }
-    return pages;
+:root {
+    --bg-color-light: #f8f9fa;
+    --text-color-light: #2c3e50;
+    --bg-color-dark: #1a1a2e;
+    --text-color-dark: #e9ecef;
+    --accent-color: #2e86ab;
+    --accent-hover: #1b5f7d;
+    --success-color: #27ae60;
+    --warning-color: #e67e22;
+    --danger-color: #e74c3c;
+    --card-bg-light: #ffffff;
+    --card-bg-dark: #2d3047;
+    --shadow-light: 0 4px 20px rgba(0,0,0,0.1);
+    --shadow-dark: 0 4px 20px rgba(0,0,0,0.3);
+    --border-radius: 16px;
+    --floating-btn-size: 56px;
 }
 
-// ========================================
-// QuranDataManager - fetches audio/text/pages
-// ========================================
-class QuranDataManager {
-    constructor() {
-        // نقطة نهاية جديدة (تتطلب تهيئة لـ CORS والـ Response Format)
-        this.newBaseURL = 'https://api.santrikoding.com/surah';
-        // نقطة نهاية احتياطية للنص
-        this.fallbackTextURL = 'https://api.alquran.cloud/v1'; 
-        this.fallbackImageURL = 'https://everyayah.com/data/images_png/'; // صور المصحف
-        this.cache = new Map();
-        this.pagesData = generatePagesData();
-        this.surahsData = EMBEDDED_SURAHS_DATA;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color-dark);
+    color: var(--text-color-dark);
+    transition: all 0.3s ease;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+body.dark-mode {
+    background-color: var(--bg-color-dark);
+    color: var(--text-color-dark);
+}
+
+body.light-mode {
+    background-color: var(--bg-color-light);
+    color: var(--text-color-light);
+}
+
+/* Loading Screen */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-color-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-content {
+    text-align: center;
+    color: var(--text-color-dark);
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(46, 134, 171, 0.3);
+    border-top: 4px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Install Prompt */
+.install-prompt {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card-bg-dark);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dark);
+    z-index: 1002;
+    border: 2px solid var(--accent-color);
+    min-width: 300px;
+}
+
+.install-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.install-btn, .cancel-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.install-btn {
+    background: var(--success-color);
+    color: white;
+}
+
+.cancel-btn {
+    background: var(--danger-color);
+    color: white;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    padding-bottom: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* الهيدر */
+header {
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--accent-color);
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0;
+    color: var(--text-color-light);
+    font-weight: 300;
+}
+
+body.dark-mode h2 {
+    color: var(--text-color-dark);
+}
+
+/* قسم البحث */
+.search-section {
+    background: var(--card-bg-dark);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dark);
+    order: 1;
+}
+
+body.light-mode .search-section {
+    background: var(--card-bg-light);
+    box-shadow: var(--shadow-light);
+}
+
+#search-bar {
+display: flex;
+gap: 12px;
+margin-bottom: 20px;
+}
+
+#search-input {
+flex: 1;
+padding: 15px 20px;
+font-size: 16px;
+border: 2px solid #444;
+border-radius: var(--border-radius);
+background: var(--card-bg-dark);
+color: var(--text-color-dark);
+transition: all 0.3s ease;
+font-family: inherit;
+}
+
+body.light-mode #search-input {
+    background: var(--bg-color-light);
+    color: var(--text-color-light);
+    border-color: #e0e0e0;
+}
+
+#search-input:focus {
+outline: none;
+border-color: var(--accent-color);
+box-shadow: 0 0 0 3px rgba(46, 134, 171, 0.1);
+}
+
+#search-btn, .nav-option {
+padding: 15px 25px;
+font-size: 16px;
+border: none;
+border-radius: var(--border-radius);
+cursor: pointer;
+background-color: var(--accent-color);
+color: white;
+transition: all 0.3s ease;
+font-weight: 500;
+display: flex;
+align-items: center;
+gap: 8px;
+font-family: inherit;
+}
+
+#search-btn:hover, .nav-option:hover {
+background-color: var(--accent-hover);
+transform: translateY(-2px);
+}
+
+.quick-nav {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.nav-option {
+    background-color: var(--warning-color);
+    flex: 1;
+    justify-content: center;
+}
+
+/* نتائج البحث */
+.search-results {
+    background: var(--card-bg-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dark);
+    max-height: 400px;
+    overflow-y: auto;
+    order: 2;
+    margin-top: -10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+body.light-mode .search-results {
+    background: var(--card-bg-light);
+    box-shadow: var(--shadow-light);
+}
+
+.search-results:not([style*="display: none"]) {
+    border-color: var(--accent-color);
+}
+
+.search-result-item {
+    padding: 18px 20px;
+    border-bottom: 1px solid #444;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin: 5px;
+}
+
+body.light-mode .search-result-item {
+    border-bottom-color: #eee;
+}
+
+.search-result-item:hover {
+    background-color: rgba(46, 134, 171, 0.15);
+    transform: translateX(-5px);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.result-surah {
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.result-verse {
+    color: var(--text-color-dark);
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+body.light-mode .result-verse {
+    color: var(--text-color-light);
+}
+
+/* معلومات الصفحة */
+.page-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: var(--card-bg-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dark);
+    order: 3;
+}
+
+body.light-mode .page-info {
+    background: var(--card-bg-light);
+    box-shadow: var(--shadow-light);
+}
+
+.page-details {
+    text-align: right;
+    flex: 1;
+}
+
+#surah-info, #juz-info {
+display: block;
+font-size: 1em;
+color: var(--accent-color);
+margin-bottom: 8px;
+font-weight: 500;
+}
+
+.page-number {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--accent-color);
+    background: rgba(46, 134, 171, 0.1);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+}
+
+/* عناصر التحكم في النص */
+.text-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--card-bg-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dark);
+    order: 4;
+}
+
+body.light-mode .text-controls {
+    background: var(--card-bg-light);
+    box-shadow: var(--shadow-light);
+}
+
+.zoom-btn {
+    padding: 12px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+}
+
+.zoom-btn:hover {
+    background: var(--accent-hover);
+    transform: scale(1.1);
+}
+
+#zoom-level {
+font-weight: bold;
+color: var(--accent-color);
+min-width: 60px;
+text-align: center;
+font-size: 1.1em;
+}
+
+/* صفحة القرآن */
+.quran-page {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    order: 5;
+    margin-bottom: 20px;
+}
+
+.quran-page img {
+    width: 100%;
+    max-width: 700px;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow-dark);
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+    background: linear-gradient(45deg, transparent, rgba(46, 134, 171, 0.1));
+}
+
+body.light-mode .quran-page img {
+    box-shadow: var(--shadow-light);
+    filter: none;
+    border-color: #e0e0e0;
+}
+
+.quran-page img:hover {
+    transform: scale(1.01);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+}
+
+/* الفوتر */
+.page-footer {
+    margin-top: auto;
+    padding: 30px 20px;
+    background: var(--card-bg-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dark);
+    text-align: center;
+    order: 6;
+}
+
+body.light-mode .page-footer {
+    background: var(--card-bg-light);
+    box-shadow: var(--shadow-light);
+}
+
+.footer-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.footer-text {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: 10px;
+}
+
+.footer-subtext {
+    font-size: 1em;
+    color: var(--text-color-dark);
+    margin-bottom: 10px;
+}
+
+body.light-mode .footer-subtext {
+    color: var(--text-color-light);
+}
+
+.heart {
+    color: #e74c3c;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.footer-developer {
+    font-size: 0.95em;
+    color: var(--text-color-dark);
+    margin-bottom: 10px;
+}
+
+body.light-mode .footer-developer {
+    color: var(--text-color-light);
+}
+
+.developer-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.developer-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+.connection-status {
+    font-size: 0.9em;
+    color: var(--success-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.connection-status.offline {
+    color: var(--warning-color);
+}
+
+/* الأزرار العائمة - الجانب الأيمن */
+.floating-controls {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.floating-main-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: var(--card-bg-dark);
+    padding: 20px;
+    border-radius: 50px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+body.light-mode .floating-main-buttons {
+    background: var(--card-bg-light);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.floating-btn {
+    width: var(--floating-btn-size);
+    height: var(--floating-btn-size);
+    border: none;
+    border-radius: 50%;
+    background: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3em;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.floating-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+.floating-btn:active {
+    transform: translateY(-1px) scale(1.05);
+}
+
+/* تخصيص ألوان الأزرار العائمة */
+#toggle-theme {
+background: var(--warning-color);
+}
+
+#toggle-theme:hover {
+background: #d35400;
+}
+
+#audio-toggle {
+background: var(--success-color);
+}
+
+#audio-toggle:hover {
+background: #219653;
+}
+
+#audio-toggle.playing {
+background: var(--danger-color);
+animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+.scroll-top-btn {
+    background: var(--warning-color);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.scroll-top-btn.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.scroll-top-btn:hover {
+    background: #d35400;
+}
+
+.pwa-install-btn {
+    background: var(--success-color);
+}
+
+.pwa-install-btn:hover {
+    background: #219653;
+}
+
+/* مشغل الصوت العائم */
+.audio-player-floating {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background: var(--card-bg-dark);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dark);
+    z-index: 1001;
+    min-width: 300px;
+    border: 2px solid var(--accent-color);
+    display: none;
+}
+
+body.light-mode .audio-player-floating {
+    background: var(--card-bg-light);
+    box-shadow: var(--shadow-light);
+}
+
+.audio-player-floating.show {
+    display: block;
+    animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-
-    async loadData(type, params = {}) {
-        const cacheKey = `${type}-${JSON.stringify(params)}`;
-        if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
-        
-        // التحقق من حالة الاتصال
-        if (!navigator.onLine && type !== 'pages' && type !== 'surahs') {
-            console.warn(`❌ لا يوجد اتصال. لا يمكن جلب ${type} من الإنترنت.`);
-            return this.getEmbeddedData(type);
-        }
-
-        try {
-            let data;
-            switch(type) {
-                case 'pages':
-                    data = this.pagesData;
-                    break;
-                case 'surahs':
-                    data = this.surahsData;
-                    break;
-                case 'audio':
-                    data = await this.loadAudioData(params.surah, params.reciter);
-                    break;
-                case 'text':
-                    data = await this.loadTextData();
-                    break;
-                default:
-                    throw new Error(`نوع غير معروف: ${type}`);
-            }
-            this.cache.set(cacheKey, data);
-            return data;
-        } catch (err) {
-            console.error(`❌ فشل تحميل ${type}:`, err);
-            return this.getEmbeddedData(type);
-        }
-    }
-
-    // تحميل بيانات النص الكامل (سنحاول جلبها من API القديم لاحتوائه على نص عثماني موحد)
-    async loadTextData() {
-        const url = `${this.fallbackTextURL}/quran/quran-uthmani`;
-        try {
-            const resp = await fetch(url);
-            const json = await resp.json();
-            if (json.code === 200 && json.data && json.data.surahs) {
-                console.log('📜 تم جلب النص العثماني من alquran.cloud');
-                return json.data.surahs;
-            } else {
-                throw new Error('استجابة غير متوقعة من API النص');
-            }
-        } catch (err) {
-            console.error('❌ خطأ في جلب نص القرآن:', err);
-            return null; // سيتم التعامل معها في QuranReader
-        }
-    }
-
-    // تحميل بيانات الصوت لسورة محددة مع دعم القارئ
-    async loadAudioData(surahNumber, reciterId = 'ar.alafasy') {
-        const reciter = AVAILABLE_RECITERS.find(r => r.id === reciterId);
-        
-        // محاولة جلب من API جديد لربط الآيات بالوقت (غير متاح حالياً، نعتمد على الرابط المباشر)
-        // إذا كان هناك API يتيح روابط صوتية مباشرة للسور (مثل Islamic Network)
-        
-        const surahStr = String(surahNumber).padStart(3, '0');
-        const audioLink = `${reciter.fallbackBase}${surahStr}.mp3`;
-        
-        console.log(`📻 استخدام رابط الصوت: ${audioLink} للقارئ ${reciter.name}`);
-
-        return {
-            link: audioLink,
-            name: reciter.name,
-            reciterId: reciterId
-        };
-    }
-
-    getPageImageUrl(page) {
-        // نحافظ على تنسيق الصورة (001.png... 604.png)
-        const pageStr = String(page).padStart(3, '0');
-        return `${this.fallbackImageURL}${pageStr}.png`;
-    }
-
-    getEmbeddedData(type) {
-        switch(type) {
-            case 'pages': return this.pagesData;
-            case 'surahs': return this.surahsData;
-            default: return null;
-        }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-// ========================================
-// دوال مساعدة عامة
-// ========================================
-function getSurahByPage(page) {
-    for (let i = EMBEDDED_SURAHS_DATA.length - 1; i >= 0; i--) {
-        if (EMBEDDED_SURAHS_DATA[i].start_page <= page) {
-            return EMBEDDED_SURAHS_DATA[i];
-        }
-    }
-    return EMBEDDED_SURAHS_DATA[0];
+.audio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
 }
 
-function calculateJuzFromPage(page) {
-    const juzPages = [1, 22, 42, 62, 82, 102, 122, 142, 162, 182, 202, 222, 242, 262, 282, 302, 322, 342, 362, 382, 402, 422, 442, 462, 482, 502, 522, 542, 562, 582];
-    for (let i = juzPages.length - 1; i >= 0; i--) {
-        if (page >= juzPages[i]) return i + 1;
-    }
-    return 1;
+body.light-mode .audio-header {
+    border-bottom-color: #eee;
 }
 
-function getJuzStartPage(juz) {
-    const juzPages = [1, 22, 42, 62, 82, 102, 122, 142, 162, 182, 202, 222, 242, 262, 282, 302, 322, 342, 362, 382, 402, 422, 442, 462, 482, 502, 522, 542, 562, 582];
-    return juzPages[juz - 1] || 1;
+.audio-header span {
+    font-weight: bold;
+    color: var(--accent-color);
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-// ========================================
-// الفئة الرئيسية - QuranReader
-// ========================================
-class QuranReader {
-    constructor() {
-        // حالة العرض
-        this.currentPage = parseInt(localStorage.getItem('gt_quran_page')) || 1;
-        this.totalPages = 604;
-        this.zoomLevel = parseInt(localStorage.getItem('gt_text_zoom')) || 100;
-        this.isPlaying = false;
-        this.currentAudioSurah = null;
-        this.autoPlayNext = localStorage.getItem('gt_autoplay') !== 'false';
-        this.selectedReciter = localStorage.getItem('gt_reciter_id') || 'ar.alafasy';
-        this.selectedFont = localStorage.getItem('gt_quran_font') || 'UthmanicHafs1'; // الخط الافتراضي
-        
-        this.dataManager = new QuranDataManager();
-        this.isOnline = navigator.onLine;
-        this.pagesData = null;
-        this.surahsData = null;
-        this.quranText = null; // سيحتوي على مصفوفة السور من API النص
-        this.viewMode = localStorage.getItem('gt_quran_view') || 'image'; // 'image' or 'text'
-        this.viewToggleBtn = null; // سيتم تهيئته لاحقاً
+#close-audio {
+    background: none;
+    border: none;
+    color: var(--text-color-dark);
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        // عناصر DOM (سيتم تهيئتها)
-        this.initializeElements();
-        this.setupEventListeners();
-        this.setupOnlineHandler();
-        this.setDefaultTheme();
-        this.createViewToggleIfMissing(); 
-        this.createFontSelector(); // إضافة زر اختيار الخط
-        this.loadInitialData();
+body.light-mode #close-audio {
+    color: var(--text-color-light);
+}
+
+#close-audio:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+.audio-player-floating audio {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.audio-info {
+    font-size: 0.9em;
+    color: var(--text-color-dark);
+    text-align: center;
+    padding: 10px;
+    background: rgba(46, 134, 171, 0.1);
+    border-radius: 8px;
+}
+
+body.light-mode .audio-info {
+    color: var(--text-color-light);
+}
+
+/* النوافذ المنبثقة */
+.modal {
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background-color: var(--card-bg-dark);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-dark);
+    position: relative;
+}
+
+body.light-mode .modal-content {
+    background-color: var(--card-bg-light);
+    box-shadow: var(--shadow-light);
+}
+
+.close {
+    color: #aaa;
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close:hover {
+    color: var(--accent-color);
+    background: rgba(46, 134, 171, 0.1);
+}
+
+.modal-content h3 {
+    margin-bottom: 20px;
+    color: var(--accent-color);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1.5em;
+}
+
+.modal-list {
+    max-height: 60vh;
+    overflow-y: auto;
+    display: grid;
+    gap: 10px;
+}
+
+.surah-item, .juz-item {
+    padding: 15px 20px;
+    background: var(--bg-color-dark);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+body.light-mode .surah-item,
+body.light-mode .juz-item {
+    background: var(--bg-color-light);
+    border-color: rgba(0,0,0,0.1);
+}
+
+.surah-item:hover, .juz-item:hover {
+    background-color: var(--accent-color);
+    color: white;
+    transform: translateX(-10px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.surah-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.surah-details {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* أنماط اختيار السورة للصوت */
+.audio-selection-info {
+    background: rgba(46, 134, 171, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    border-right: 4px solid var(--accent-color);
+}
+
+.audio-selection-info p {
+    margin: 0;
+    color: var(--text-color-dark);
+    font-size: 0.95em;
+}
+
+body.light-mode .audio-selection-info p {
+    color: var(--text-color-light);
+}
+
+.surah-audio-item {
+    padding: 15px 20px;
+    background: var(--bg-color-dark);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+body.light-mode .surah-audio-item {
+    background: var(--card-bg-light);
+    border-color: rgba(0,0,0,0.1);
+}
+
+.surah-audio-item:hover {
+    background-color: var(--accent-color);
+    color: white;
+    transform: translateX(-5px);
+}
+
+.surah-audio-info {
+    flex: 1;
+}
+
+.surah-audio-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.surah-audio-details {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.surah-audio-item:hover .surah-audio-details {
+    opacity: 1;
+}
+
+.play-audio-icon {
+    background: var(--success-color);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.surah-audio-item:hover .play-audio-icon {
+    background: white;
+    color: var(--success-color);
+    transform: scale(1.1);
+}
+
+/* شريط التمرير المخصص */
+.modal-list::-webkit-scrollbar,
+.search-results::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-list::-webkit-scrollbar-track,
+.search-results::-webkit-scrollbar-track {
+    background: #2d3047;
+    border-radius: 4px;
+}
+
+body.light-mode .modal-list::-webkit-scrollbar-track,
+body.light-mode .search-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.modal-list::-webkit-scrollbar-thumb,
+.search-results::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 4px;
+}
+
+.modal-list::-webkit-scrollbar-thumb:hover,
+.search-results::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-hover);
+}
+
+/* تحسينات للوضع المظلم */
+body.dark-mode .floating-btn {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+body.dark-mode .floating-btn:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+
+/* التجاوب مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+        padding-bottom: 140px;
+        gap: 20px;
     }
 
-    initializeElements() {
-        this.quranImg = document.getElementById('quran-img');
-        this.pageNumber = document.getElementById('page-number');
-        this.surahInfo = document.getElementById('surah-info');
-        this.juzInfo = document.getElementById('juz-info');
-        this.audioPlayer = document.getElementById('quran-audio');
-        this.loadingScreen = document.getElementById('loading-screen');
-        this.container = document.querySelector('.container');
-        this.connectionStatus = document.getElementById('connection-status');
-        this.connectionIcon = document.getElementById('connection-icon');
-
-        this.zoomInBtn = document.getElementById('zoom-in');
-        this.zoomOutBtn = document.getElementById('zoom-out');
-        this.resetZoomBtn = document.getElementById('reset-zoom');
-        this.zoomLevelDisplay = document.getElementById('zoom-level');
-
-        this.prevBtn = document.getElementById('prev-page-btn');
-        this.nextBtn = document.getElementById('next-page-btn');
-        this.themeBtn = document.getElementById('toggle-theme');
-        this.audioBtn = document.getElementById('audio-toggle');
-        this.scrollTopBtn = document.getElementById('scroll-to-top');
-
-        this.audioFloating = document.querySelector('.audio-player-floating');
-        this.closeAudioBtn = document.getElementById('close-audio');
-        this.audioInfo = document.getElementById('audio-info');
-
-        this.navSurah = document.getElementById('nav-surah');
-        this.navJuz = document.getElementById('nav-juz');
-        this.navSajda = document.getElementById('nav-sajda');
-
-        // إنشاء عنصر النص وتطبيقه
-        this.textContainer = document.getElementById('quran-text');
-        if (!this.textContainer) {
-            const qPage = document.querySelector('.quran-page');
-            this.textContainer = document.createElement('div');
-            this.textContainer.id = 'quran-text';
-            this.textContainer.className = 'quran-text-content'; // فئة للتنسيق في CSS
-            qPage.appendChild(this.textContainer);
-        }
+    h1 {
+        font-size: 2rem;
     }
 
-    // إنشاء زر تبديل العرض
-    createViewToggleIfMissing() {
-        const textControls = document.querySelector('.text-controls');
-        if (!textControls) return;
-
-        let toggleBtn = document.getElementById('toggle-view');
-        if (!toggleBtn) {
-            toggleBtn = document.createElement('button');
-            toggleBtn.id = 'toggle-view';
-            toggleBtn.className = 'zoom-btn';
-            textControls.appendChild(toggleBtn);
-        }
-        this.viewToggleBtn = toggleBtn;
-        this.updateToggleButtonUI(this.viewToggleBtn);
-        this.viewToggleBtn.addEventListener('click', () => this.toggleView());
+    h2 {
+        font-size: 1.1rem;
     }
 
-    // إنشاء قائمة منبثقة لاختيار الخط (يجب إضافة الـ Modal للخطوط في HTML)
-    createFontSelector() {
-        const textControls = document.querySelector('.text-controls');
-        if (!textControls) return;
-        
-        // يفترض وجود زر في HTML لفتح إعدادات الخط (لم يُضف، لكننا نضيف الزر هنا)
-        let fontBtn = document.getElementById('font-select-btn');
-        if (!fontBtn) {
-            fontBtn = document.createElement('button');
-            fontBtn.id = 'font-select-btn';
-            fontBtn.className = 'zoom-btn';
-            fontBtn.innerHTML = '<i class="fas fa-font"></i>';
-            fontBtn.title = 'اختيار الخط القرآني';
-            textControls.appendChild(fontBtn);
-        }
+    .search-section {
+        padding: 20px;
+    }
 
-        // نضيف مستمع لفتح قائمة اختيار الخط (يفترض وجود قائمة modal في HTML)
-        fontBtn.addEventListener('click', () => this.showFontSelector());
+    #search-bar {
+    flex-direction: column;
+    }
 
-        // تهيئة الخط المختار
-        this.applyFont(this.selectedFont);
+    .quick-nav {
+        flex-direction: column;
+    }
+
+    .page-info {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .text-controls {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .floating-controls {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .floating-main-buttons {
+        padding: 15px;
+        border-radius: 40px;
+    }
+
+    .floating-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2em;
+    }
+
+    .audio-player-floating {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        min-width: auto;
+    }
+
+    .modal-content {
+        margin: 10px;
+        padding: 25px 20px;
+    }
+
+    .quran-page img {
+        border-radius: 15px;
+    }
+
+    .install-prompt {
+        left: 20px;
+        right: 20px;
+        transform: none;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --floating-btn-size: 50px;
+    }
+
+    .container {
+        padding: 10px;
+        padding-bottom: 150px;
+        gap: 15px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .search-section {
+        padding: 15px;
+    }
+
+    .floating-controls {
+        bottom: 15px;
+        right: 15px;
+    }
+
+    .floating-main-buttons {
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .floating-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1em;
+    }
+
+    .audio-player-floating {
+        bottom: 15px;
+        left: 15px;
+        right: 15px;
+    }
+}
+
+/* تحسينات إضافية للصور في الوضع المظلم */
+body.dark-mode .quran-page img {
+    filter: brightness(0.9) contrast(1.1);
+}
+
+/* تحسينات للظلال في الوضع المظلم */
+body.dark-mode .search-section,
+body.dark-mode .page-info,
+body.dark-mode .text-controls,
+body.dark-mode .page-footer {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* تحسينات للتفاعلات */
+.floating-btn, .zoom-btn, #search-btn, .nav-option {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* تحسينات للأداء */
+.quran-page img {
+    will-change: transform;
+}
+
+.floating-controls, .audio-player-floating {
+    will-change: transform, opacity;
+}
+
+/* تحسينات الطباعة */
+@media print {
+    .floating-controls,
+    .search-section,
+    .text-controls {
+        display: none !important;
     }
     
-    // عرض نافذة اختيار الخط
-    showFontSelector() {
-        // يفترض وجود مودال HTML ID 'font-modal' و قائمة ID 'font-selection-list'
-        let fontModal = document.getElementById('font-modal');
-        let fontList = document.getElementById('font-selection-list');
-        
-        if (!fontModal || !fontList) {
-             alert('يرجى إضافة Modal اختيار الخط في ملف index.html');
-             return;
-        }
-
-        fontList.innerHTML = '';
-        AVAILABLE_FONTS.forEach(font => {
-            const item = document.createElement('div');
-            item.className = 'surah-item';
-            item.style.fontFamily = font.id; // لعرض الخط نفسه
-            item.innerHTML = `<span class="surah-name">${font.name}</span>`;
-            item.addEventListener('click', () => {
-                this.applyFont(font.id);
-                fontModal.style.display = 'none';
-            });
-            fontList.appendChild(item);
-        });
-
-        fontModal.style.display = 'flex';
-    }
-
-    // تطبيق الخط المختار
-    applyFont(fontName) {
-        this.selectedFont = fontName;
-        this.textContainer.style.fontFamily = fontName;
-        localStorage.setItem('gt_quran_font', fontName);
-        console.log(`✅ تم تطبيق الخط: ${fontName}`);
-        this.updatePage(); // لضمان التحديث عند تبديل الخط
-    }
-
-    updateToggleButtonUI(btn) {
-        if (!btn) return;
-        if (this.viewMode === 'text') {
-            btn.innerHTML = '<i class="fas fa-file-image"></i>';
-            btn.title = 'معاينة المصحف المصوّر';
-        } else {
-            btn.innerHTML = '<i class="fas fa-file-alt"></i>';
-            btn.title = 'معاينة النص العثماني';
-        }
-    }
-
-    setupEventListeners() {
-        // التنقل
-        if (this.prevBtn) this.prevBtn.addEventListener('click', () => this.previousPage());
-        if (this.nextBtn) this.nextBtn.addEventListener('click', () => this.nextPage());
-
-        if (this.themeBtn) this.themeBtn.addEventListener('click', () => this.toggleTheme());
-
-        if (this.audioBtn) this.audioBtn.addEventListener('click', () => this.toggleAudio());
-        if (this.closeAudioBtn) this.closeAudioBtn.addEventListener('click', () => this.hideAudioPlayer());
-
-        if (this.audioPlayer) {
-            this.audioPlayer.addEventListener('ended', () => this.onAudioEnded());
-            this.audioPlayer.addEventListener('play', () => this.onAudioPlay());
-            this.audioPlayer.addEventListener('pause', () => this.onAudioPause());
-        }
-
-        // تكبير وتصغير النص
-        if (this.zoomInBtn) this.zoomInBtn.addEventListener('click', () => this.zoomIn());
-        if (this.zoomOutBtn) this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
-        if (this.resetZoomBtn) this.resetZoomBtn.addEventListener('click', () => this.resetZoom());
-        this.updateZoomDisplay(); // تحديث مستوى التكبير المبدئي
-
-        if (this.scrollTopBtn) this.scrollTopBtn.addEventListener('click', () => this.scrollToTop());
-
-        // ... (بقية مستمعي الأحداث)
-        document.querySelectorAll('.close').forEach(closeBtn => {
-            closeBtn.addEventListener('click', (e) => {
-                const modal = e.target.closest('.modal');
-                if (modal) modal.style.display = 'none';
-            });
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target.classList && e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target === this.searchInput) return;
-
-            if (e.key === 'ArrowRight' || e.key === 'd') this.previousPage();
-            if (e.key === 'ArrowLeft' || e.key === 'a') this.nextPage();
-            if (e.key === ' ') {
-                e.preventDefault();
-                this.toggleAudio();
-            }
-            if (e.key === 'Escape') this.hideAudioPlayer();
-        });
-
-        window.addEventListener('scroll', () => this.toggleScrollTopButton());
-    }
-
-    setupOnlineHandler() {
-        window.addEventListener('online', () => this.updateConnectionStatus(true));
-        window.addEventListener('offline', () => this.updateConnectionStatus(false));
-        this.updateConnectionStatus(navigator.onLine);
-    }
-
-    updateConnectionStatus(online) {
-        this.isOnline = online;
-        if (!this.connectionStatus || !this.connectionIcon) return;
-        if (online) {
-            this.connectionStatus.textContent = 'متصل بالإنترنت';
-            this.connectionIcon.className = 'fas fa-wifi';
-            this.connectionStatus.parentElement.classList.remove('offline');
-            this.connectionStatus.parentElement.classList.add('online');
-        } else {
-            this.connectionStatus.textContent = 'غير متصل بالإنترنت';
-            this.connectionIcon.className = 'fas fa-wifi-slash';
-            this.connectionStatus.parentElement.classList.remove('online');
-            this.connectionStatus.parentElement.classList.add('offline');
-        }
-    }
-
-    setDefaultTheme() {
-        const storedTheme = localStorage.getItem('gt_theme') || 'dark';
-        document.body.classList.add(`${storedTheme}-mode`);
-        const icon = this.themeBtn ? this.themeBtn.querySelector('i') : null;
-        if (icon) {
-            if (storedTheme === 'dark') {
-                icon.className = 'fas fa-sun';
-                if (this.themeBtn) this.themeBtn.title = 'الوضع النهاري';
-            } else {
-                icon.className = 'fas fa-moon';
-                if (this.themeBtn) this.themeBtn.title = 'الوضع الليلي';
-            }
-        }
-    }
-
-    toggleTheme() {
-        const isDarkMode = document.body.classList.contains('dark-mode');
-        if (isDarkMode) {
-            document.body.classList.remove('dark-mode');
-            document.body.classList.add('light-mode');
-            localStorage.setItem('gt_theme', 'light');
-            this.themeBtn.querySelector('i').className = 'fas fa-moon';
-            this.themeBtn.title = 'الوضع الليلي';
-        } else {
-            document.body.classList.remove('light-mode');
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('gt_theme', 'dark');
-            this.themeBtn.querySelector('i').className = 'fas fa-sun';
-            this.themeBtn.title = 'الوضع النهاري';
-        }
+    .container {
+        max-width: none;
+        padding: 0;
     }
     
-    // ========================================
-    // منطق تبديل وضع العرض (صورة/نص)
-    // ========================================
-    toggleView() {
-        this.viewMode = this.viewMode === 'image' ? 'text' : 'image';
-        localStorage.setItem('gt_quran_view', this.viewMode);
-        this.updateToggleButtonUI(this.viewToggleBtn);
-        this.updatePage();
-        
-        // عند التبديل إلى النص، نطبق التكبير المحفوظ
-        if (this.viewMode === 'text') {
-            this.applyZoom();
-        } else {
-            this.resetZoom(); // إخفاء التكبير/التصغير في وضع الصورة
-        }
-    }
-
-    // ========================================
-    // منطق التكبير والتصغير للنص
-    // ========================================
-    zoomIn() {
-        if (this.viewMode !== 'text') return;
-        this.zoomLevel = Math.min(200, this.zoomLevel + 10);
-        this.applyZoom();
-    }
-
-    zoomOut() {
-        if (this.viewMode !== 'text') return;
-        this.zoomLevel = Math.max(80, this.zoomLevel - 10);
-        this.applyZoom();
-    }
-
-    resetZoom() {
-        if (this.viewMode === 'image') return;
-        this.zoomLevel = 100;
-        this.applyZoom();
-    }
-    
-    applyZoom() {
-        if (this.textContainer) {
-            const baseFontSize = 18; // حجم أساسي في px
-            const newFontSize = baseFontSize * (this.zoomLevel / 100);
-            this.textContainer.style.fontSize = `${newFontSize}px`;
-            localStorage.setItem('gt_text_zoom', this.zoomLevel);
-            this.updateZoomDisplay();
-        }
-    }
-
-    updateZoomDisplay() {
-        if (this.zoomLevelDisplay) {
-            this.zoomLevelDisplay.textContent = `${this.zoomLevel}%`;
-        }
-    }
-
-    // ========================================
-    // التحميل المبدئي للبيانات
-    // ========================================
-    async loadInitialData() {
-        try {
-            this.showLoadingScreen('جاري تحميل بيانات القرآن...');
-            const [pagesData, surahsData, quranText] = await Promise.all([
-                this.dataManager.loadData('pages'),
-                this.dataManager.loadData('surahs'),
-                this.dataManager.loadData('text')
-            ]);
-
-            this.pagesData = pagesData;
-            this.surahsData = surahsData;
-            this.quranText = quranText; // قد يكون null في حالة فشل الجلب
-
-            this.hideLoadingScreen();
-            this.updatePage(); 
-        } catch (err) {
-            console.error('❌ خطأ في تحميل البيانات:', err);
-            this.hideLoadingScreen();
-            this.updatePage();
-        }
-    }
-
-    showLoadingScreen(message = 'جاري التحميل...') {
-        if (this.loadingScreen) {
-            this.loadingScreen.style.display = 'flex';
-            const h2 = this.loadingScreen.querySelector('h2');
-            if (h2) h2.textContent = message;
-        }
-        if (this.container) this.container.style.display = 'none';
-    }
-
-    hideLoadingScreen() {
-        setTimeout(() => {
-            if (this.loadingScreen) this.loadingScreen.style.display = 'none';
-            if (this.container) this.container.style.display = 'flex';
-        }, 700);
-    }
-
-    // ========================================
-    // تغيير الصفحة (تحديث العرض: نص أو صورة)
-    // ========================================
-    async updatePage() {
-        this.currentPage = Math.max(1, Math.min(this.totalPages, this.currentPage));
-        localStorage.setItem('gt_quran_page', this.currentPage);
-
-        this.pageNumber.textContent = `الصفحة: ${this.currentPage}`;
-        this.updatePageInfo();
-        
-        // تبديل العرض بين الصورة والنص
-        if (this.viewMode === 'image') {
-            this.quranImg.style.display = 'block';
-            this.textContainer.style.display = 'none';
-            this.quranImg.src = this.dataManager.getPageImageUrl(this.currentPage);
-        } else {
-            this.quranImg.style.display = 'none';
-            this.textContainer.style.display = 'block';
-            this.renderTextPage();
-            this.applyZoom(); // تطبيق التكبير/التصغير عند عرض النص
-        }
-        
-        // لا نوقف الصوت، فقط نغير المصدر إذا تغيرت السورة الأساسية للصفحة.
-    }
-    
-    // عرض النص على الصفحة الحالية
-    renderTextPage() {
-        if (!this.quranText) {
-            this.textContainer.innerHTML = '<p class="text-error">⚠️ تعذر تحميل النص القرآني. يُرجى التحقق من اتصالك.</p>';
-            return;
-        }
-
-        const pageContent = document.createElement('div');
-        pageContent.className = 'text-page-content';
-        let foundContent = false;
-
-        this.quranText.forEach(surah => {
-            surah.ayahs.forEach(ayah => {
-                if (ayah.page === this.currentPage) {
-                    foundContent = true;
-                    // تمثيل الآية بالخط العثماني أو الأميري المختار
-                    const ayahElement = document.createElement('p');
-                    ayahElement.className = 'quran-ayah';
-                    ayahElement.innerHTML = `${ayah.text} <span class="ayah-number">﴿${ayah.numberInSurah}﴾</span>`;
-                    pageContent.appendChild(ayahElement);
-                    
-                    // يمكن إضافة الترجمة هنا إذا تم جلبها
-                    // const translation = this.quranTranslation.find(t => t.ayah === ayah.number);
-                    // if (translation) {
-                    //     const transElement = document.createElement('p');
-                    //     transElement.className = 'ayah-translation';
-                    //     transElement.textContent = translation.text;
-                    //     pageContent.appendChild(transElement);
-                    // }
-                }
-            });
-        });
-
-        if (foundContent) {
-            this.textContainer.innerHTML = '';
-            this.textContainer.appendChild(pageContent);
-        } else {
-            // هذا يحدث عادةً في الصفحة 1 والفصل بين السور الطويلة
-            this.textContainer.innerHTML = '<p class="text-info">لا يوجد محتوى نصي مباشر لعرضه في هذه الصفحة (ربما صفحة فاصلة).</p>';
-        }
-    }
-
-    // ... (بقية دوال التحكم بالصفحة)
-    goToPage(page) {
-        if (page >= 1 && page <= this.totalPages) {
-            this.currentPage = page;
-            this.updatePage();
-            this.scrollToTop();
-        }
-    }
-
-    nextPage() {
-        this.goToPage(this.currentPage + 1);
-    }
-
-    previousPage() {
-        this.goToPage(this.currentPage - 1);
-    }
-
-    updatePageInfo() {
-        const pageData = this.pagesData.find(p => p.page === this.currentPage);
-        if (pageData) {
-            this.surahInfo.textContent = `السورة: ${pageData.start.name.ar}`;
-            this.juzInfo.textContent = `الجزء: ${pageData.start.juz}`;
-        }
-    }
-    
-    // ========================================
-    // منطق تشغيل الصوت
-    // ========================================
-    async toggleAudio() {
-        if (this.isPlaying) {
-            this.audioPlayer.pause();
-        } else {
-            // نحتاج إلى تحديد السورة التي سنبدأ التشغيل منها
-            const surahOnPage = getSurahByPage(this.currentPage);
-            await this.loadAndPlayAudioForSurah(surahOnPage.number);
-        }
-    }
-
-    onAudioPlay() {
-        this.isPlaying = true;
-        this.audioBtn.querySelector('i').className = 'fas fa-pause';
-        this.audioBtn.classList.add('playing');
-        this.audioFloating.classList.add('show');
-        this.audioInfo.textContent = `تلاوة: ${this.surahsData.find(s => s.number === this.currentAudioSurah).name.ar} | القارئ: ${this.selectedReciter}`;
-    }
-
-    onAudioPause() {
-        this.isPlaying = false;
-        this.audioBtn.querySelector('i').className = 'fas fa-play';
-        this.audioBtn.classList.remove('playing');
-    }
-
-    async onAudioEnded() {
-        this.onAudioPause();
-        if (this.autoPlayNext) {
-            const nextSurahNumber = (this.currentAudioSurah || 0) + 1;
-            if (nextSurahNumber <= 114) {
-                console.log(`تم إنهاء سورة ${this.currentAudioSurah}. بدء تشغيل السورة ${nextSurahNumber}...`);
-                const nextSurah = this.surahsData.find(s => s.number === nextSurahNumber);
-                if (nextSurah) this.goToPage(nextSurah.start_page);
-                await this.loadAndPlayAudioForSurah(nextSurahNumber);
-            } else {
-                this.hideAudioPlayer();
-            }
-        }
-    }
-
-    async loadAndPlayAudioForSurah(surahNumber) {
-        try {
-            const audioData = await this.dataManager.loadData('audio', { surah: surahNumber, reciter: this.selectedReciter });
-            this.audioPlayer.src = audioData.link;
-            this.audioPlayer.load();
-            await this.audioPlayer.play();
-            this.currentAudioSurah = surahNumber;
-        } catch (error) {
-            console.error('❌ فشل تشغيل الصوت:', error);
-            alert('تعذر تشغيل الصوت. قد يكون الملف غير متوفر أو هناك مشكلة في الشبكة.');
-            this.onAudioPause();
-        }
-    }
-
-    hideAudioPlayer() {
-        this.audioPlayer.pause();
-        this.onAudioPause();
-        this.audioFloating.classList.remove('show');
-        this.currentAudioSurah = null;
-    }
-
-    // ... (بقية دوال التنقل والقوائم)
-    // *يجب إضافة منطق showSurahList/showJuzList لعرض البيانات المضمنة*
-    showSurahList() {
-        const modal = document.getElementById('surah-list');
-        const list = document.getElementById('surah-list-content');
-        if (!modal || !list) return;
-
-        list.innerHTML = '';
-        this.surahsData.forEach(surah => {
-            const item = document.createElement('div');
-            item.className = 'surah-item';
-            item.innerHTML = `<div class="surah-name">${surah.name.ar}</div><div class="surah-details">آيات: ${surah.verses_count} | ${surah.revelation_place.ar} | تبدأ من صفحة: ${surah.start_page}</div>`;
-            item.addEventListener('click', () => {
-                this.goToPage(surah.start_page);
-                modal.style.display = 'none';
-            });
-            list.appendChild(item);
-        });
-
-        modal.style.display = 'flex';
-    }
-
-    showJuzList() {
-        const modal = document.getElementById('juz-list');
-        const list = document.getElementById('juz-list-content');
-        if (!modal || !list) return;
-
-        list.innerHTML = '';
-        // بما أن بيانات الأجزاء غير مضمنة بشكل صريح، نعتمد على دالة مساعدة
-        for (let j = 1; j <= 30; j++) {
-            const startPage = getJuzStartPage(j);
-            const surahStart = getSurahByPage(startPage);
-
-            const item = document.createElement('div');
-            item.className = 'juz-item';
-            item.innerHTML = `<div class="surah-name">الجزء ${j}</div><div class="surah-details">يبدأ من صفحة: ${startPage} (سورة: ${surahStart.name.ar})</div>`;
-            item.addEventListener('click', () => {
-                this.goToPage(startPage);
-                modal.style.display = 'none';
-            });
-            list.appendChild(item);
-        }
-
-        modal.style.display = 'flex';
-    }
-
-    // وظائف مساعدة لواجهة المستخدم
-    scrollToTop() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    toggleScrollTopButton() {
-        if (!this.scrollTopBtn) return;
-        if (window.scrollY > 200) {
-            this.scrollTopBtn.classList.add('show');
-        } else {
-            this.scrollTopBtn.classList.remove('show');
-        }
-    }
-
-    // ... (منطق البحث يحتاج إلى بيانات نص كامل ليعمل، تم حذفه مؤقتاً لتجنب تعقيد الكود)
-    performSearch() {
-        // يجب إضافة منطق بحث شامل هنا
-        console.log('البحث قيد التطوير');
-        if (this.searchResults) this.searchResults.style.display = 'block'; // لعرض منطقة النتائج
+    .quran-page img {
+        box-shadow: none;
+        border: none;
     }
 }
-
-// تهيئة القارئ
-document.addEventListener('DOMContentLoaded', () => {
-    // يجب التأكد من أن جميع عناصر DOM موجودة قبل التهيئة
-    new QuranReader();
-});
-
-// *ملاحظة:* يرجى تذكيري بإضافة HTML الـ Modal الخاص بـ **اختيار الخطوط (font-modal)**
